@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { DataTable, Column, Badge, Button, Card } from "@/components/ui";
+import {
+  DataTable,
+  Column,
+  Badge,
+  Button,
+  Card,
+  SidebarModal,
+} from "@/components/ui";
+import { PaymentForm } from "./payment-form";
 import {
   Eye,
   CreditCard,
@@ -14,12 +22,18 @@ import Link from "next/link";
 
 interface Payment {
   id: string;
+  code: string;
   paymentCode: string;
   amount: string;
   method: string;
   status: string;
+  reference: string | null;
+  notes: string | null;
+  paidAt: string | null;
   createdAt: string;
   booking: {
+    id: string;
+    code: string;
     bookingCode: string;
     customer: { fullName: string };
     totalPrice: string;
@@ -45,6 +59,13 @@ export default function FinancePage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"view" | "create" | "edit">(
+    "create",
+  );
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
 
   const fetchPayments = useCallback(async () => {
     setIsLoading(true);
@@ -72,6 +93,28 @@ export default function FinancePage() {
     .filter((p) => p.status === "SUCCESS")
     .reduce((sum, p) => sum + Number(p.amount), 0);
   const pendingPayments = payments.filter((p) => p.status === "PENDING").length;
+
+  const handleView = (payment: Payment) => {
+    setSelectedPayment(payment);
+    setModalMode("view");
+    setIsModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setSelectedPayment(null);
+    setModalMode("create");
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = () => {
+    setModalMode("edit");
+  };
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedPayment(null);
+    fetchPayments();
+  };
 
   const columns: Column<Payment>[] = [
     {
@@ -136,8 +179,8 @@ export default function FinancePage() {
       key: "actions",
       header: "",
       width: "60px",
-      render: () => (
-        <Button variant="ghost" size="icon">
+      render: (row) => (
+        <Button variant="ghost" size="icon" onClick={() => handleView(row)}>
           <Eye className="h-4 w-4" />
         </Button>
       ),
@@ -220,6 +263,8 @@ export default function FinancePage() {
         columns={columns}
         data={payments}
         isLoading={isLoading}
+        addLabel="Record Payment"
+        onAdd={handleCreate}
         pagination={{
           page,
           pageSize,
@@ -229,6 +274,27 @@ export default function FinancePage() {
         }}
         emptyMessage="No payments found"
       />
+
+      <SidebarModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={
+          modalMode === "create"
+            ? "Record Payment"
+            : modalMode === "edit"
+              ? "Edit Payment"
+              : "Payment Details"
+        }
+        size="md"
+      >
+        <PaymentForm
+          mode={modalMode}
+          payment={selectedPayment}
+          onSuccess={handleSuccess}
+          onCancel={() => setIsModalOpen(false)}
+          onEdit={modalMode === "view" ? handleEdit : undefined}
+        />
+      </SidebarModal>
     </div>
   );
 }
