@@ -1,0 +1,2370 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum BusinessType {
+  UMROH
+  HAJI
+  OUTBOUND
+  INBOUND
+  DOMESTIC
+  MICE
+  CRUISE
+  CUSTOM
+}
+
+enum CustomerType {
+  PROSPECT  // Calon client
+  CLIENT    // Sudah booking
+  VIP       // Repeat customer
+  INACTIVE  // Tidak aktif > 2 tahun
+}
+
+enum Gender {
+  M
+  F
+}
+
+enum BloodType {
+  A
+  B
+  AB
+  O
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum DocumentType {
+  PASSPORT
+  KTP
+  KK
+  PHOTO_3X4
+  PHOTO_4X6
+  BIRTH_CERTIFICATE
+  MARRIAGE_CERTIFICATE
+  MAHRAM_LETTER
+  HEALTH_CERTIFICATE
+  VACCINATION_CARD
+  VISA
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum VisaStatus {
+  PENDING
+  SUBMITTED
+  APPOINTMENT_SCHEDULED
+  PROCESSING
+  APPROVED
+  REJECTED
+  COLLECTED
+}
+
+enum RoomType {
+  QUAD
+  TRIPLE
+  DOUBLE
+  TWIN
+  SINGLE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  READY
+  DEPARTED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  VIRTUAL_ACCOUNT
+  CREDIT_CARD
+  QRIS
+  E_WALLET
+  PAYPAL
+  CASH
+}
+
+enum PaymentTransactionStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  EXPIRED
+  REFUNDED
+}
+
+enum ScheduleStatus {
+  OPEN
+  ALMOST_FULL
+  FULL
+  CLOSED
+  DEPARTED
+  COMPLETED
+}
+
+enum ManifestStatus {
+  DRAFT
+  CONFIRMED
+  DEPARTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum HotelCity {
+  MAKKAH
+  MADINAH
+  JEDDAH
+}
+
+enum POIType {
+  ATTRACTION
+  RESTAURANT
+  SHOPPING
+  MOSQUE
+  TEMPLE
+  CHURCH
+  MUSEUM
+  PARK
+  BEACH
+  OTHER
+}
+
+enum LeadSource {
+  WEBSITE
+  REFERRAL
+  AGENT
+  SOCIAL_MEDIA
+  WALK_IN
+  PHONE
+  EVENT
+  CORPORATE
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING
+  RESOLVED
+  CLOSED
+}
+
+enum AgentTier {
+  REGULAR
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  RESIGNED
+  TERMINATED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  HALF_DAY
+  LEAVE
+  HOLIDAY
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  MATERNITY
+  PATERNITY
+  UNPAID
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PayrollStatus {
+  DRAFT
+  APPROVED
+  PAID
+}
+
+enum DeviceType {
+  SMART_CARD
+  WRISTBAND
+  SMART_TAG
+  BEACON
+  GATEWAY
+}
+
+enum DeviceStatus {
+  ACTIVE
+  INACTIVE
+  LOST
+  DAMAGED
+  MAINTENANCE
+}
+
+enum LocationSource {
+  GPS
+  BEACON
+  WIFI
+  CELL_TOWER
+  MANUAL
+}
+
+enum GeofenceType {
+  HOTEL
+  ATTRACTION
+  MEETING_POINT
+  AIRPORT
+  STATION
+  RESTRICTED
+  CUSTOM
+}
+
+enum AlertType {
+  GEOFENCE_EXIT
+  GEOFENCE_ENTER
+  SOS_TRIGGERED
+  DEVICE_OFFLINE
+  LOW_BATTERY
+  NO_MOVEMENT
+  MISSED_CHECKIN
+  HEALTH_ALERT
+  CUSTOM
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+  DISMISSED
+}
+
+enum AttendanceType {
+  CHECK_IN
+  CHECK_OUT
+  MANUAL
+  QR_SCAN
+  FACE_RECOGNITION
+  BEACON_AUTO
+}
+
+enum MovementType {
+  PURCHASE
+  TRANSFER_IN
+  TRANSFER_OUT
+  ADJUSTMENT
+  DISTRIBUTION
+  RETURN
+  DAMAGE
+  LOSS
+}
+
+enum POStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+enum CampaignType {
+  EMAIL
+  WHATSAPP
+  SMS
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  CANCELLED
+}
+
+enum VoucherType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum NotificationType {
+  INFO
+  PAYMENT
+  BOOKING
+  DOCUMENT
+  REMINDER
+  ALERT
+  PROMO
+  SYSTEM
+}
+
+// ============================================================
+// TENANT & CONFIGURATION
+// ============================================================
+
+model Tenant {
+  id              String        @id @default(cuid())
+  name            String
+  subdomain       String        @unique
+  domain          String?       @unique
+  logo            String?
+  
+  // Business Configuration
+  businessTypes   BusinessType[]
+  defaultCurrency String        @default("IDR")
+  currencies      Json?         // Supported currencies array
+  defaultLanguage String        @default("id")
+  languages       Json?         // Supported languages array
+  timezone        String        @default("Asia/Jakarta")
+  
+  // Feature Flags
+  features        Json?         // FeatureFlags object
+  
+  // Terminology customization
+  terminology     Json?         // Custom terminology mapping
+  
+  // Theme (customizable colors)
+  theme           Json?         // ThemeConfig object
+  
+  // Google Drive
+  driveFolderId   String?       // Root folder for this tenant
+  
+  isActive        Boolean       @default(true)
+  
+  // Soft delete
+  isDeleted       Boolean       @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  users           User[]
+  customers       Customer[]
+  packages        Package[]
+  bookings        Booking[]
+  settings        Setting[]
+  branches        Branch[]
+  warehouses      Warehouse[]
+  products        Product[]
+  employees       Employee[]
+  agents          Agent[]
+  sales           Sales[]
+  campaigns       Campaign[]
+  vouchers        Voucher[]
+  landingPages    LandingPage[]
+  leads           Lead[]
+  devices         Device[]
+  beacons         Beacon[]
+  geofences       Geofence[]
+  alerts          Alert[]
+  pages           Page[]
+  articles        Article[]
+  media           Media[]
+  menus           Menu[]
+  
+  @@index([isDeleted])
+  @@map("tenants")
+}
+
+model Currency {
+  id        String   @id @default(cuid())
+  code      String   @unique  // USD, IDR, SAR, etc
+  name      String
+  symbol    String
+  rate      Decimal  @db.Decimal(15, 6)  // Rate to base (IDR)
+  isBase    Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  
+  updatedAt DateTime @updatedAt
+  
+  @@map("currencies")
+}
+
+model Language {
+  id         String  @id @default(cuid())
+  code       String  @unique  // id, en, ar, jp, kr
+  name       String
+  nativeName String
+  direction  String  @default("ltr")  // ltr, rtl
+  isActive   Boolean @default(true)
+  
+  @@map("languages")
+}
+
+// ============================================================
+// AUTH & USER
+// ============================================================
+
+model User {
+  id                String    @id @default(cuid())
+  tenantId          String?
+  email             String
+  emailVerified     DateTime?
+  password          String?   // Null for OAuth users
+  name              String?
+  image             String?
+  phone             String?
+  preferredLanguage String?
+  preferredCurrency String?
+  provider          String?   // google, facebook, credentials
+  
+  isActive          Boolean   @default(true)
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
+  
+  // Soft delete
+  isDeleted         Boolean   @default(false)
+  deletedAt         DateTime?
+  deletedBy         String?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastLoginAt       DateTime?
+  
+  tenant            Tenant?   @relation(fields: [tenantId], references: [id])
+  roles             UserRole[]
+  accounts          Account[]
+  sessions          Session[]
+  logs              AuditLog[]
+  notifications     Notification[]
+  
+  // Optional relations
+  customer          Customer?
+  employee          Employee?
+  agent             Agent?
+  sales             Sales?
+  
+  @@unique([tenantId, email])
+  @@index([isDeleted])
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Role {
+  id          String    @id @default(cuid())
+  tenantId    String?   // null = system role
+  name        String
+  displayName Json      // Localized display name
+  description Json?     // Localized description
+  permissions Json      // Array of permission strings
+  isSystem    Boolean   @default(false)
+  
+  // Soft delete
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  users       UserRole[]
+  
+  @@unique([tenantId, name])
+  @@index([isDeleted])
+  @@map("roles")
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+// ============================================================
+// MASTER DATA
+// ============================================================
+
+model Branch {
+  id        String   @id @default(cuid())
+  tenantId  String
+  code      String
+  name      String
+  address   String?
+  city      String?
+  province  String?
+  phone     String?
+  email     String?
+  isActive  Boolean  @default(true)
+  
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  employees Employee[]
+  warehouses Warehouse[]
+  
+  @@unique([tenantId, code])
+  @@index([isDeleted])
+  @@map("branches")
+}
+
+model Country {
+  id            String   @id @default(cuid())
+  code          String   @unique  // ISO code
+  name          Json     // Localized name
+  continent     String
+  currency      String
+  timezone      String
+  visaRequired  Boolean  @default(true)
+  visaOnArrival Boolean  @default(false)
+  flagUrl       String?
+  isActive      Boolean  @default(true)
+  
+  cities        City[]
+  visaRequirements VisaRequirement[]
+  
+  @@map("countries")
+}
+
+model City {
+  id          String   @id @default(cuid())
+  countryCode String
+  name        Json     // Localized name
+  timezone    String?
+  airports    Json?    // Array of airport codes
+  isPopular   Boolean  @default(false)
+  imageUrl    String?
+  
+  country     Country  @relation(fields: [countryCode], references: [code])
+  pois        PointOfInterest[]
+  hotels      Hotel[]
+  
+  @@map("cities")
+}
+
+model PointOfInterest {
+  id           String   @id @default(cuid())
+  cityId       String
+  type         POIType
+  name         Json     // Localized
+  description  Json?    // Localized
+  address      String?
+  latitude     Float?
+  longitude    Float?
+  images       Json?
+  rating       Float?
+  priceRange   String?  // $, $$, $$$
+  openingHours Json?
+  tags         Json?
+  isActive     Boolean  @default(true)
+  
+  city         City     @relation(fields: [cityId], references: [id])
+  
+  @@map("points_of_interest")
+}
+
+model VisaRequirement {
+  id              String   @id @default(cuid())
+  countryCode     String
+  passportCountry String   // Passport holder country
+  visaType        String   // Tourist, Business, Umroh, etc
+  required        Boolean
+  onArrival       Boolean  @default(false)
+  eVisa           Boolean  @default(false)
+  duration        Int?     // Max stay in days
+  processingDays  Int?
+  fee             Decimal? @db.Decimal(15, 2)
+  feeCurrency     String?
+  documents       Json     // Required documents
+  notes           Json?    // Localized notes
+  
+  country         Country  @relation(fields: [countryCode], references: [code])
+  
+  @@unique([countryCode, passportCountry, visaType])
+  @@map("visa_requirements")
+}
+
+model Hotel {
+  id            String    @id @default(cuid())
+  cityId        String
+  name          String
+  stars         Int
+  address       String?
+  latitude      Float?
+  longitude     Float?
+  distanceToCenter String?
+  distanceToMasjid String?  // For Makkah/Madinah
+  facilities    Json?
+  images        Json?
+  isActive      Boolean   @default(true)
+  
+  // Soft delete
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  deletedBy     String?
+  
+  city          City      @relation(fields: [cityId], references: [id])
+  packageHotels PackageHotel[]
+  rooming       Rooming[]
+  
+  @@index([isDeleted])
+  @@map("hotels")
+}
+
+model Airline {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  logo      String?
+  isActive  Boolean  @default(true)
+  
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?
+  
+  flights   Flight[]
+  
+  @@index([isDeleted])
+  @@map("airlines")
+}
+
+model Bank {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  code        String
+  name        String
+  accountNo   String
+  accountName String
+  logo        String?
+  isVA        Boolean  @default(false)
+  vaPrefix    String?
+  isActive    Boolean  @default(true)
+  
+  // Soft delete
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  payments    Payment[]
+  
+  @@unique([tenantId, code])
+  @@index([isDeleted])
+  @@map("banks")
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  code      String
+  name      String
+  category  String?  // Hotel, Airline, LA, etc
+  address   String?
+  city      String?
+  phone     String?
+  email     String?
+  picName   String?
+  picPhone  String?
+  isActive  Boolean  @default(true)
+  
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  purchaseOrders PurchaseOrder[]
+  
+  @@unique([tenantId, code])
+  @@index([isDeleted])
+  @@map("suppliers")
+}
+
+// ============================================================
+// PACKAGE & SCHEDULE
+// ============================================================
+
+model Package {
+  id              String       @id @default(cuid())
+  tenantId        String
+  code            String
+  type            BusinessType
+  name            Json         // Localized
+  description     Json?        // Localized
+  
+  // Destination
+  destinations    Json         // Array of country/city codes
+  
+  // Duration
+  duration        Int          // Days
+  nights          Int
+  
+  // Pricing (base prices in IDR)
+  priceQuad       Decimal      @db.Decimal(15, 2)
+  priceTriple     Decimal      @db.Decimal(15, 2)
+  priceDouble     Decimal      @db.Decimal(15, 2)
+  priceSingle     Decimal?     @db.Decimal(15, 2)
+  childPrice      Decimal?     @db.Decimal(15, 2)
+  infantPrice     Decimal?     @db.Decimal(15, 2)
+  
+  // Multi-currency prices (pre-calculated)
+  pricesMultiCurrency Json?
+  
+  // Inclusions/Exclusions
+  inclusions      Json?        // Localized
+  exclusions      Json?        // Localized
+  
+  // Media
+  thumbnail       String?
+  images          Json?
+  video           String?
+  
+  // Settings
+  minPax          Int          @default(1)
+  maxPax          Int?
+  isActive        Boolean      @default(true)
+  isFeatured      Boolean      @default(false)
+  
+  // Soft delete
+  isDeleted       Boolean      @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  tenant          Tenant       @relation(fields: [tenantId], references: [id])
+  hotels          PackageHotel[]
+  itinerary       PackageItinerary[]
+  schedules       Schedule[]
+  bookings        Booking[]
+  seasonalPrices  SeasonalPrice[]
+  
+  @@unique([tenantId, code])
+  @@index([isDeleted])
+  @@map("packages")
+}
+
+model PackageHotel {
+  id        String  @id @default(cuid())
+  packageId String
+  hotelId   String
+  cityId    String
+  nights    Int
+  order     Int
+  
+  package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  hotel     Hotel   @relation(fields: [hotelId], references: [id])
+  
+  @@map("package_hotels")
+}
+
+model PackageItinerary {
+  id          String   @id @default(cuid())
+  packageId   String
+  day         Int
+  title       Json     // Localized
+  description Json?    // Localized
+  activities  Json     // Array of activities (localized)
+  meals       Json?    // B, L, D
+  hotel       String?
+  
+  package     Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  
+  @@unique([packageId, day])
+  @@map("package_itineraries")
+}
+
+model SeasonalPrice {
+  id           String   @id @default(cuid())
+  packageId    String
+  name         String   // Peak Season, Low Season, etc
+  startDate    DateTime
+  endDate      DateTime
+  adjustment   Decimal  @db.Decimal(15, 2)  // Amount or percentage
+  isPercentage Boolean  @default(false)
+  
+  package      Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  
+  @@map("seasonal_prices")
+}
+
+model Schedule {
+  id             String         @id @default(cuid())
+  packageId      String
+  departureDate  DateTime
+  returnDate     DateTime
+  quota          Int
+  availableQuota Int
+  status         ScheduleStatus @default(OPEN)
+  notes          String?
+  
+  // Price override (optional)
+  priceOverride  Json?
+  
+  // Soft delete
+  isDeleted      Boolean        @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
+  
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  
+  package        Package        @relation(fields: [packageId], references: [id])
+  bookings       Booking[]
+  manifests      Manifest[]
+  
+  @@index([isDeleted])
+  @@map("schedules")
+}
+
+// ============================================================
+// CUSTOMER
+// ============================================================
+
+model Customer {
+  id             String       @id @default(cuid())
+  tenantId       String
+  code           String
+  
+  // Type
+  customerType   CustomerType @default(PROSPECT)
+  
+  // Universal fields
+  fullName       String
+  passportName   String?
+  idNumber       String?      // KTP/NIK
+  birthPlace     String?
+  birthDate      DateTime?
+  gender         Gender?
+  nationality    String       @default("ID")
+  
+  // Address
+  address        String?
+  city           String?
+  province       String?
+  country        String       @default("ID")
+  postalCode     String?
+  
+  // Contact
+  phone          String
+  phone2         String?
+  email          String?
+  whatsapp       String?
+  
+  // Passport
+  passportNumber String?
+  passportIssuePlace String?
+  passportIssueDate DateTime?
+  passportExpiry DateTime?
+  
+  // Preferences
+  dietaryRequirements Json?
+  specialNeeds   String?
+  roomPreference String?
+  seatPreference String?
+  
+  // Additional info
+  occupation     String?
+  bloodType      BloodType?
+  shirtSize      String?
+  shoeSize       Int?
+  
+  // Photo
+  photo          String?
+  photoFileId    String?      // Google Drive file ID
+  
+  // Source
+  source         LeadSource?
+  
+  // Umroh-specific (nullable)
+  fatherName     String?
+  mahramId       String?
+  maritalStatus  MaritalStatus?
+  
+  // Corporate (MICE)
+  companyName    String?
+  companyPosition String?
+  
+  // Soft delete
+  isDeleted      Boolean      @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  tenant         Tenant       @relation(fields: [tenantId], references: [id])
+  userId         String?      @unique
+  user           User?        @relation(fields: [userId], references: [id])
+  
+  documents      Document[]
+  emergencyContacts EmergencyContact[]
+  family         FamilyMember[]
+  bookings       Booking[]
+  visaApplications VisaApplication[]
+  
+  // Tracking
+  device         Device?
+  locations      Location[]
+  attendance     Attendance[]
+  alerts         Alert[]      @relation("CustomerAlerts")
+  faceData       FaceData?
+  
+  // CRM
+  activities     LeadActivity[]
+  tickets        Ticket[]
+  loyaltyPoints  LoyaltyPoint[]
+  
+  // Manifest
+  manifestParticipants ManifestParticipant[]
+  roomings       Rooming[]
+  itemDistributions ItemDistribution[]
+  
+  @@unique([tenantId, code])
+  @@index([fullName])
+  @@index([phone])
+  @@index([passportNumber])
+  @@index([isDeleted])
+  @@index([customerType])
+  @@map("customers")
+}
+
+model EmergencyContact {
+  id           String   @id @default(cuid())
+  customerId   String
+  name         String
+  relationship String
+  phone        String
+  address      String?
+  
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  @@map("emergency_contacts")
+}
+
+model FamilyMember {
+  id               String   @id @default(cuid())
+  customerId       String
+  name             String
+  relationship     String
+  phone            String?
+  linkedCustomerId String?  // If also a customer
+  
+  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  @@map("family_members")
+}
+
+model Document {
+  id            String         @id @default(cuid())
+  customerId    String
+  type          DocumentType
+  fileName      String
+  url           String
+  driveFileId   String?        // Google Drive file ID
+  mimeType      String?
+  size          Int?
+  status        DocumentStatus @default(PENDING)
+  extractedData Json?          // OCR data
+  notes         String?
+  verifiedAt    DateTime?
+  verifiedBy    String?
+  
+  // Soft delete
+  isDeleted     Boolean        @default(false)
+  deletedAt     DateTime?
+  deletedBy     String?
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  customer      Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  @@index([isDeleted])
+  @@map("documents")
+}
+
+model VisaApplication {
+  id              String     @id @default(cuid())
+  customerId      String
+  countryCode     String
+  visaType        String
+  applicationDate DateTime
+  appointmentDate DateTime?
+  status          VisaStatus @default(PENDING)
+  referenceNumber String?
+  notes           String?
+  
+  // Soft delete
+  isDeleted       Boolean    @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
+  
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  
+  customer        Customer   @relation(fields: [customerId], references: [id])
+  
+  @@index([isDeleted])
+  @@map("visa_applications")
+}
+
+// ============================================================
+// BOOKING & PAYMENT
+// ============================================================
+
+model Booking {
+  id             String        @id @default(cuid())
+  tenantId       String
+  bookingCode    String
+  customerId     String
+  packageId      String
+  scheduleId     String
+  
+  // Booking details
+  businessType   BusinessType
+  roomType       RoomType
+  pax            Int           @default(1)
+  
+  // Pricing
+  basePrice      Decimal       @db.Decimal(15, 2)
+  discount       Decimal       @default(0) @db.Decimal(15, 2)
+  additionalFees Decimal       @default(0) @db.Decimal(15, 2)
+  totalPrice     Decimal       @db.Decimal(15, 2)
+  currency       String        @default("IDR")
+  
+  // Status
+  status         BookingStatus @default(PENDING)
+  paymentStatus  PaymentStatus @default(UNPAID)
+  
+  // Add-ons
+  addOns         Json?
+  notes          String?
+  
+  // Source
+  source         String?       // online, offline, agent
+  agentId        String?
+  salesId        String?
+  voucherId      String?
+  
+  // Corporate (MICE)
+  corporateId    String?
+  poNumber       String?
+  
+  // Soft delete
+  isDeleted      Boolean       @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
+  cancelledAt    DateTime?
+  cancelReason   String?
+  
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  tenant         Tenant        @relation(fields: [tenantId], references: [id])
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  package        Package       @relation(fields: [packageId], references: [id])
+  schedule       Schedule      @relation(fields: [scheduleId], references: [id])
+  agent          Agent?        @relation(fields: [agentId], references: [id])
+  sales          Sales?        @relation(fields: [salesId], references: [id])
+  voucher        Voucher?      @relation(fields: [voucherId], references: [id])
+  
+  payments       Payment[]
+  invoices       Invoice[]
+  commissions    Commission[]
+  
+  @@unique([tenantId, bookingCode])
+  @@index([isDeleted])
+  @@map("bookings")
+}
+
+model Payment {
+  id             String                   @id @default(cuid())
+  paymentCode    String                   @unique
+  bookingId      String
+  bankId         String?
+  
+  amount         Decimal                  @db.Decimal(15, 2)
+  currency       String                   @default("IDR")
+  amountInBase   Decimal                  @db.Decimal(15, 2)  // Converted to base currency
+  exchangeRate   Decimal                  @default(1) @db.Decimal(15, 6)
+  
+  method         PaymentMethod
+  status         PaymentTransactionStatus @default(PENDING)
+  
+  gatewayId      String?
+  gatewayResponse Json?
+  
+  proofUrl       String?
+  proofFileId    String?                  // Google Drive file ID
+  transferDate   DateTime?
+  
+  verifiedAt     DateTime?
+  verifiedBy     String?
+  notes          String?
+  
+  // Soft delete
+  isDeleted      Boolean                  @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
+  
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  
+  booking        Booking                  @relation(fields: [bookingId], references: [id])
+  bank           Bank?                    @relation(fields: [bankId], references: [id])
+  
+  @@index([isDeleted])
+  @@map("payments")
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  invoiceNo   String   @unique
+  bookingId   String
+  
+  subtotal    Decimal  @db.Decimal(15, 2)
+  discount    Decimal  @default(0) @db.Decimal(15, 2)
+  tax         Decimal  @default(0) @db.Decimal(15, 2)
+  total       Decimal  @db.Decimal(15, 2)
+  currency    String   @default("IDR")
+  
+  paidAmount  Decimal  @default(0) @db.Decimal(15, 2)
+  balance     Decimal  @db.Decimal(15, 2)
+  
+  dueDate     DateTime
+  items       Json
+  notes       String?
+  fileUrl     String?
+  fileId      String?  // Google Drive file ID
+  
+  // Soft delete
+  isDeleted   Boolean  @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  
+  @@index([isDeleted])
+  @@map("invoices")
+}
+
+// ============================================================
+// OPERASIONAL
+// ============================================================
+
+model Manifest {
+  id             String         @id @default(cuid())
+  code           String         @unique
+  scheduleId     String
+  name           String
+  
+  businessType   BusinessType
+  departureDate  DateTime
+  returnDate     DateTime
+  
+  // Transportation
+  outboundFlightId String?
+  returnFlightId   String?
+  
+  // Leader
+  leaderId       String?
+  leaderName     String?
+  localGuideId   String?
+  localGuideName String?
+  
+  status         ManifestStatus @default(DRAFT)
+  notes          String?
+  
+  // Soft delete
+  isDeleted      Boolean        @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
+  
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  
+  schedule       Schedule       @relation(fields: [scheduleId], references: [id])
+  outboundFlight Flight?        @relation("OutboundFlight", fields: [outboundFlightId], references: [id])
+  returnFlight   Flight?        @relation("ReturnFlight", fields: [returnFlightId], references: [id])
+  
+  participants   ManifestParticipant[]
+  rooming        Rooming[]
+  groups         TripGroup[]
+  attendance     Attendance[]
+  alerts         Alert[]
+  geofences      Geofence[]     @relation("ManifestGeofences")
+  distributions  ItemDistribution[]
+  devices        Device[]       @relation("ManifestDevices")
+  
+  @@index([isDeleted])
+  @@map("manifests")
+}
+
+model ManifestParticipant {
+  id          String     @id @default(cuid())
+  manifestId  String
+  customerId  String
+  orderNo     Int
+  groupId     String?
+  
+  manifest    Manifest   @relation(fields: [manifestId], references: [id], onDelete: Cascade)
+  customer    Customer   @relation(fields: [customerId], references: [id])
+  group       TripGroup? @relation(fields: [groupId], references: [id])
+  
+  @@unique([manifestId, customerId])
+  @@map("manifest_participants")
+}
+
+model Flight {
+  id            String   @id @default(cuid())
+  airlineId     String
+  flightNumber  String
+  
+  originCity    String
+  originAirport String
+  destCity      String
+  destAirport   String
+  
+  date          DateTime
+  departureTime String
+  arrivalTime   String
+  
+  // Soft delete
+  isDeleted     Boolean  @default(false)
+  deletedAt     DateTime?
+  deletedBy     String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  airline       Airline  @relation(fields: [airlineId], references: [id])
+  outboundManifests Manifest[] @relation("OutboundFlight")
+  returnManifests   Manifest[] @relation("ReturnFlight")
+  
+  @@index([isDeleted])
+  @@map("flights")
+}
+
+model TripGroup {
+  id          String   @id @default(cuid())
+  manifestId  String
+  name        String   // Group A, B, C atau Bus 1, 2, 3
+  leaderId    String?
+  vehicleNo   String?
+  
+  manifest    Manifest @relation(fields: [manifestId], references: [id], onDelete: Cascade)
+  participants ManifestParticipant[]
+  
+  @@map("trip_groups")
+}
+
+model Rooming {
+  id          String   @id @default(cuid())
+  manifestId  String
+  hotelId     String
+  customerId  String
+  roomNumber  String
+  roomType    RoomType
+  checkIn     DateTime?
+  checkOut    DateTime?
+  
+  manifest    Manifest @relation(fields: [manifestId], references: [id], onDelete: Cascade)
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  customer    Customer @relation(fields: [customerId], references: [id])
+  
+  @@map("roomings")
+}
+
+// ============================================================
+// CRM
+// ============================================================
+
+model LeadActivity {
+  id          String   @id @default(cuid())
+  customerId  String
+  type        String   // CALL, EMAIL, MEETING, NOTE
+  subject     String
+  description String?
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdBy   String
+  
+  createdAt   DateTime @default(now())
+  
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  @@map("lead_activities")
+}
+
+model Ticket {
+  id          String         @id @default(cuid())
+  ticketNo    String         @unique
+  customerId  String
+  subject     String
+  description String
+  category    String
+  priority    TicketPriority @default(MEDIUM)
+  status      TicketStatus   @default(OPEN)
+  assignedTo  String?
+  resolvedAt  DateTime?
+  resolution  String?
+  
+  // Soft delete
+  isDeleted   Boolean        @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  customer    Customer       @relation(fields: [customerId], references: [id])
+  comments    TicketComment[]
+  
+  @@index([isDeleted])
+  @@map("tickets")
+}
+
+model TicketComment {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  comment   String
+  isInternal Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  @@map("ticket_comments")
+}
+
+model LoyaltyPoint {
+  id          String   @id @default(cuid())
+  customerId  String
+  points      Int
+  type        String   // EARN, REDEEM
+  description String
+  referenceId String?  // booking id, etc
+  expiresAt   DateTime?
+  
+  createdAt   DateTime @default(now())
+  
+  customer    Customer @relation(fields: [customerId], references: [id])
+  
+  @@map("loyalty_points")
+}
+
+// ============================================================
+// AGENT & SALES
+// ============================================================
+
+model Agent {
+  id             String    @id @default(cuid())
+  tenantId       String
+  code           String
+  userId         String?   @unique
+  
+  name           String
+  companyName    String?
+  address        String?
+  city           String?
+  phone          String
+  email          String?
+  
+  tier           AgentTier @default(REGULAR)
+  commissionRate Decimal   @db.Decimal(5, 2)  // Percentage
+  
+  isActive       Boolean   @default(true)
+  
+  // Website settings
+  subdomain      String?   @unique
+  websiteConfig  Json?
+  
+  // Soft delete
+  isDeleted      Boolean   @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  
+  tenant         Tenant    @relation(fields: [tenantId], references: [id])
+  user           User?     @relation(fields: [userId], references: [id])
+  bookings       Booking[]
+  commissions    Commission[]
+  
+  @@unique([tenantId, code])
+  @@index([isDeleted])
+  @@map("agents")
+}
+
+model Sales {
+  id             String   @id @default(cuid())
+  tenantId       String
+  code           String
+  userId         String?  @unique
+  
+  name           String
+  phone          String
+  email          String?
+  branchId       String?
+  commissionRate Decimal  @db.Decimal(5, 2)
+  
+  isActive       Boolean  @default(true)
+  
+  // Soft delete
+  isDeleted      Boolean  @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  tenant         Tenant   @relation(fields: [tenantId], references: [id])
+  user           User?    @relation(fields: [userId], references: [id])
+  bookings       Booking[]
+  commissions    Commission[]
+  targets        SalesTarget[]
+  
+  @@unique([tenantId, code])
+  @@index([isDeleted])
+  @@map("sales")
+}
+
+model SalesTarget {
+  id             String   @id @default(cuid())
+  salesId        String
+  period         String   // YYYY-MM
+  targetAmount   Decimal  @db.Decimal(15, 2)
+  achievedAmount Decimal  @default(0) @db.Decimal(15, 2)
+  
+  sales          Sales    @relation(fields: [salesId], references: [id])
+  
+  @@unique([salesId, period])
+  @@map("sales_targets")
+}
+
+model Commission {
+  id          String           @id @default(cuid())
+  bookingId   String
+  agentId     String?
+  salesId     String?
+  amount      Decimal          @db.Decimal(15, 2)
+  rate        Decimal          @db.Decimal(5, 2)
+  status      CommissionStatus @default(PENDING)
+  paidAt      DateTime?
+  paidBy      String?
+  
+  // Soft delete
+  isDeleted   Boolean          @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  createdAt   DateTime         @default(now())
+  
+  booking     Booking          @relation(fields: [bookingId], references: [id])
+  agent       Agent?           @relation(fields: [agentId], references: [id])
+  sales       Sales?           @relation(fields: [salesId], references: [id])
+  
+  @@index([isDeleted])
+  @@map("commissions")
+}
+
+// ============================================================
+// HRIS
+// ============================================================
+
+model Employee {
+  id             String         @id @default(cuid())
+  tenantId       String
+  nip            String
+  userId         String?        @unique
+  branchId       String?
+  
+  name           String
+  gender         Gender?
+  birthDate      DateTime?
+  phone          String?
+  email          String?
+  address        String?
+  
+  position       String
+  department     String
+  joinDate       DateTime
+  resignDate     DateTime?
+  status         EmployeeStatus @default(ACTIVE)
+  
+  // Tour Leader specific
+  isTourLeader   Boolean        @default(false)
+  certifications Json?          // Tour leader certifications
+  languages      Json?          // Languages spoken
+  destinations   Json?          // Destinations expertise
+  rating         Float?         // Average rating
+  
+  baseSalary     Decimal        @db.Decimal(15, 2)
+  allowances     Json?
+  
+  bankName       String?
+  bankAccount    String?
+  
+  // Soft delete
+  isDeleted      Boolean        @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
+  
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  
+  tenant         Tenant         @relation(fields: [tenantId], references: [id])
+  user           User?          @relation(fields: [userId], references: [id])
+  branch         Branch?        @relation(fields: [branchId], references: [id])
+  attendances    EmployeeAttendance[]
+  leaves         Leave[]
+  payrolls       Payroll[]
+  
+  @@unique([tenantId, nip])
+  @@index([isDeleted])
+  @@map("employees")
+}
+
+model EmployeeAttendance {
+  id          String           @id @default(cuid())
+  employeeId  String
+  date        DateTime         @db.Date
+  clockIn     DateTime?
+  clockOut    DateTime?
+  clockInLat  Float?
+  clockInLng  Float?
+  clockOutLat Float?
+  clockOutLng Float?
+  clockInPhoto String?
+  clockOutPhoto String?
+  status      AttendanceStatus @default(PRESENT)
+  workHours   Float?
+  notes       String?
+  
+  employee    Employee         @relation(fields: [employeeId], references: [id])
+  
+  @@unique([employeeId, date])
+  @@map("employee_attendances")
+}
+
+model Leave {
+  id          String      @id @default(cuid())
+  employeeId  String
+  type        LeaveType
+  startDate   DateTime
+  endDate     DateTime
+  days        Int
+  reason      String
+  status      LeaveStatus @default(PENDING)
+  approvedBy  String?
+  approvedAt  DateTime?
+  rejectedReason String?
+  
+  // Soft delete
+  isDeleted   Boolean     @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  createdAt   DateTime    @default(now())
+  
+  employee    Employee    @relation(fields: [employeeId], references: [id])
+  
+  @@index([isDeleted])
+  @@map("leaves")
+}
+
+model Payroll {
+  id          String        @id @default(cuid())
+  employeeId  String
+  period      String        // YYYY-MM
+  baseSalary  Decimal       @db.Decimal(15, 2)
+  allowances  Decimal       @default(0) @db.Decimal(15, 2)
+  overtime    Decimal       @default(0) @db.Decimal(15, 2)
+  deductions  Decimal       @default(0) @db.Decimal(15, 2)
+  netSalary   Decimal       @db.Decimal(15, 2)
+  details     Json?
+  status      PayrollStatus @default(DRAFT)
+  paidAt      DateTime?
+  
+  // Soft delete
+  isDeleted   Boolean       @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  employee    Employee      @relation(fields: [employeeId], references: [id])
+  
+  @@unique([employeeId, period])
+  @@index([isDeleted])
+  @@map("payrolls")
+}
+
+// ============================================================
+// INVENTORY
+// ============================================================
+
+model Warehouse {
+  id        String   @id @default(cuid())
+  tenantId  String
+  branchId  String?
+  code      String
+  name      String
+  address   String?
+  isActive  Boolean  @default(true)
+  
+  // Soft delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  stocks    Stock[]
+  movements StockMovement[]
+  
+  @@unique([tenantId, code])
+  @@index([isDeleted])
+  @@map("warehouses")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  tenantId    String
+  code        String
+  name        String
+  category    String
+  description String?
+  unit        String
+  buyPrice    Decimal  @db.Decimal(15, 2)
+  sellPrice   Decimal? @db.Decimal(15, 2)
+  minStock    Int      @default(0)
+  image       String?
+  isActive    Boolean  @default(true)
+  
+  // Soft delete
+  isDeleted   Boolean  @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  stocks      Stock[]
+  movements   StockMovement[]
+  distributions ItemDistribution[]
+  poItems     PurchaseOrderItem[]
+  
+  @@unique([tenantId, code])
+  @@index([isDeleted])
+  @@map("products")
+}
+
+model Stock {
+  id          String    @id @default(cuid())
+  productId   String
+  warehouseId String
+  quantity    Int       @default(0)
+  
+  updatedAt   DateTime  @updatedAt
+  
+  product     Product   @relation(fields: [productId], references: [id])
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  
+  @@unique([productId, warehouseId])
+  @@map("stocks")
+}
+
+model StockMovement {
+  id          String       @id @default(cuid())
+  productId   String
+  warehouseId String
+  type        MovementType
+  quantity    Int
+  reference   String?
+  description String?
+  createdBy   String
+  
+  createdAt   DateTime     @default(now())
+  
+  product     Product      @relation(fields: [productId], references: [id])
+  warehouse   Warehouse    @relation(fields: [warehouseId], references: [id])
+  
+  @@map("stock_movements")
+}
+
+model PurchaseOrder {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  poNumber    String   @unique
+  supplierId  String
+  orderDate   DateTime
+  dueDate     DateTime?
+  
+  subtotal    Decimal  @db.Decimal(15, 2)
+  tax         Decimal  @default(0) @db.Decimal(15, 2)
+  total       Decimal  @db.Decimal(15, 2)
+  
+  status      POStatus @default(DRAFT)
+  notes       String?
+  
+  // Soft delete
+  isDeleted   Boolean  @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+  items       PurchaseOrderItem[]
+  
+  @@index([isDeleted])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id        String        @id @default(cuid())
+  poId      String
+  productId String
+  quantity  Int
+  price     Decimal       @db.Decimal(15, 2)
+  received  Int           @default(0)
+  
+  po        PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  product   Product       @relation(fields: [productId], references: [id])
+  
+  @@map("purchase_order_items")
+}
+
+model ItemDistribution {
+  id            String   @id @default(cuid())
+  manifestId    String
+  customerId    String
+  productId     String
+  quantity      Int
+  distributedAt DateTime @default(now())
+  distributedBy String
+  
+  manifest      Manifest @relation(fields: [manifestId], references: [id])
+  customer      Customer @relation(fields: [customerId], references: [id])
+  product       Product  @relation(fields: [productId], references: [id])
+  
+  @@map("item_distributions")
+}
+
+// ============================================================
+// MARKETING
+// ============================================================
+
+model Campaign {
+  id          String         @id @default(cuid())
+  tenantId    String
+  name        String
+  type        CampaignType
+  status      CampaignStatus @default(DRAFT)
+  subject     String?
+  content     String
+  template    String?
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  stats       Json?
+  
+  // Soft delete
+  isDeleted   Boolean        @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  createdBy   String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  tenant      Tenant         @relation(fields: [tenantId], references: [id])
+  
+  @@index([isDeleted])
+  @@map("campaigns")
+}
+
+model Voucher {
+  id          String      @id @default(cuid())
+  tenantId    String
+  code        String
+  name        String
+  description String?
+  type        VoucherType
+  value       Decimal     @db.Decimal(15, 2)
+  minPurchase Decimal?    @db.Decimal(15, 2)
+  maxDiscount Decimal?    @db.Decimal(15, 2)
+  quota       Int?
+  used        Int         @default(0)
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean     @default(true)
+  
+  // Soft delete
+  isDeleted   Boolean     @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  createdAt   DateTime    @default(now())
+  
+  tenant      Tenant      @relation(fields: [tenantId], references: [id])
+  bookings    Booking[]
+  
+  @@unique([tenantId, code])
+  @@index([isDeleted])
+  @@map("vouchers")
+}
+
+model LandingPage {
+  id              String   @id @default(cuid())
+  tenantId        String
+  slug            String
+  title           Json     // Localized
+  content         Json
+  metaTitle       Json?
+  metaDescription Json?
+  isPublished     Boolean  @default(false)
+  publishedAt     DateTime?
+  views           Int      @default(0)
+  conversions     Int      @default(0)
+  
+  // Soft delete
+  isDeleted       Boolean  @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  leads           Lead[]
+  
+  @@unique([tenantId, slug])
+  @@index([isDeleted])
+  @@map("landing_pages")
+}
+
+model Lead {
+  id            String     @id @default(cuid())
+  tenantId      String
+  landingPageId String?
+  name          String
+  email         String?
+  phone         String
+  source        String?
+  interest      String?
+  notes         String?
+  status        LeadStatus @default(NEW)
+  assignedTo    String?
+  convertedAt   DateTime?
+  convertedToId String?    // customerId
+  
+  // Soft delete
+  isDeleted     Boolean    @default(false)
+  deletedAt     DateTime?
+  deletedBy     String?
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  tenant        Tenant     @relation(fields: [tenantId], references: [id])
+  landingPage   LandingPage? @relation(fields: [landingPageId], references: [id])
+  
+  @@index([isDeleted])
+  @@map("leads")
+}
+
+// ============================================================
+// IoT & TRACKING
+// ============================================================
+
+model Device {
+  id           String       @id @default(cuid())
+  tenantId     String
+  type         DeviceType
+  serialNumber String
+  macAddress   String?
+  firmwareVer  String?
+  batteryLevel Int?
+  lastSeen     DateTime?
+  status       DeviceStatus @default(ACTIVE)
+  
+  customerId   String?      @unique
+  manifestId   String?
+  
+  // Soft delete
+  isDeleted    Boolean      @default(false)
+  deletedAt    DateTime?
+  deletedBy    String?
+  
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  
+  tenant       Tenant       @relation(fields: [tenantId], references: [id])
+  customer     Customer?    @relation(fields: [customerId], references: [id])
+  manifest     Manifest?    @relation("ManifestDevices", fields: [manifestId], references: [id])
+  
+  locations    Location[]
+  alerts       Alert[]
+  telemetry    DeviceTelemetry[]
+  
+  @@unique([tenantId, serialNumber])
+  @@index([isDeleted])
+  @@map("devices")
+}
+
+model DeviceTelemetry {
+  id             String   @id @default(cuid())
+  deviceId       String
+  batteryLevel   Int?
+  signalStrength Int?
+  temperature    Float?
+  timestamp      DateTime @default(now())
+  
+  device         Device   @relation(fields: [deviceId], references: [id])
+  
+  @@index([deviceId, timestamp])
+  @@map("device_telemetry")
+}
+
+model Location {
+  id         String         @id @default(cuid())
+  deviceId   String?
+  customerId String?
+  latitude   Float
+  longitude  Float
+  altitude   Float?
+  accuracy   Float?
+  speed      Float?
+  source     LocationSource
+  beaconId   String?
+  timestamp  DateTime       @default(now())
+  
+  device     Device?        @relation(fields: [deviceId], references: [id])
+  customer   Customer?      @relation(fields: [customerId], references: [id])
+  
+  @@index([deviceId, timestamp])
+  @@index([customerId, timestamp])
+  @@map("locations")
+}
+
+model Beacon {
+  id           String       @id @default(cuid())
+  tenantId     String
+  name         String
+  uuid         String
+  major        Int
+  minor        Int
+  location     String
+  latitude     Float?
+  longitude    Float?
+  floor        Int?
+  status       DeviceStatus @default(ACTIVE)
+  batteryLevel Int?
+  lastSeen     DateTime?
+  
+  // Soft delete
+  isDeleted    Boolean      @default(false)
+  deletedAt    DateTime?
+  deletedBy    String?
+  
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  
+  tenant       Tenant       @relation(fields: [tenantId], references: [id])
+  
+  @@unique([tenantId, uuid])
+  @@index([isDeleted])
+  @@map("beacons")
+}
+
+model Geofence {
+  id          String       @id @default(cuid())
+  tenantId    String
+  manifestId  String?
+  name        String
+  description String?
+  type        GeofenceType
+  coordinates Json         // Polygon or circle
+  radius      Float?       // For circle
+  isActive    Boolean      @default(true)
+  
+  // Soft delete
+  isDeleted   Boolean      @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  manifest    Manifest?    @relation("ManifestGeofences", fields: [manifestId], references: [id])
+  alerts      Alert[]
+  
+  @@index([isDeleted])
+  @@map("geofences")
+}
+
+model Alert {
+  id          String        @id @default(cuid())
+  tenantId    String
+  type        AlertType
+  severity    AlertSeverity
+  title       String
+  message     String
+  
+  deviceId    String?
+  customerId  String?
+  geofenceId  String?
+  manifestId  String?
+  
+  latitude    Float?
+  longitude   Float?
+  
+  status      AlertStatus   @default(ACTIVE)
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  resolution  String?
+  
+  createdAt   DateTime      @default(now())
+  
+  tenant      Tenant        @relation(fields: [tenantId], references: [id])
+  device      Device?       @relation(fields: [deviceId], references: [id])
+  customer    Customer?     @relation("CustomerAlerts", fields: [customerId], references: [id])
+  geofence    Geofence?     @relation(fields: [geofenceId], references: [id])
+  manifest    Manifest?     @relation(fields: [manifestId], references: [id])
+  
+  @@index([status, createdAt])
+  @@map("alerts")
+}
+
+model Attendance {
+  id          String         @id @default(cuid())
+  manifestId  String
+  customerId  String
+  location    String
+  type        AttendanceType
+  timestamp   DateTime       @default(now())
+  latitude    Float?
+  longitude   Float?
+  photo       String?
+  photoFileId String?        // Google Drive file ID
+  confidence  Float?         // For face recognition
+  deviceId    String?
+  notes       String?
+  
+  manifest    Manifest       @relation(fields: [manifestId], references: [id])
+  customer    Customer       @relation(fields: [customerId], references: [id])
+  
+  @@map("attendances")
+}
+
+model FaceData {
+  id         String   @id @default(cuid())
+  customerId String   @unique
+  embedding  Bytes    // Encrypted face embedding
+  photoUrl   String
+  photoFileId String? // Google Drive file ID
+  isVerified Boolean  @default(false)
+  confidence Float?
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  customer   Customer @relation(fields: [customerId], references: [id])
+  
+  @@map("face_data")
+}
+
+// ============================================================
+// CMS
+// ============================================================
+
+model Page {
+  id              String   @id @default(cuid())
+  tenantId        String
+  slug            String
+  title           Json     // Localized
+  content         Json
+  metaTitle       Json?
+  metaDescription Json?
+  isPublished     Boolean  @default(false)
+  publishedAt     DateTime?
+  
+  // Soft delete
+  isDeleted       Boolean  @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  
+  @@unique([tenantId, slug])
+  @@index([isDeleted])
+  @@map("pages")
+}
+
+model Article {
+  id              String   @id @default(cuid())
+  tenantId        String
+  slug            String
+  title           Json     // Localized
+  excerpt         Json?
+  content         Json
+  thumbnail       String?
+  thumbnailFileId String?  // Google Drive file ID
+  category        String?
+  tags            Json?
+  authorId        String
+  metaTitle       Json?
+  metaDescription Json?
+  isPublished     Boolean  @default(false)
+  publishedAt     DateTime?
+  views           Int      @default(0)
+  
+  // Soft delete
+  isDeleted       Boolean  @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  
+  @@unique([tenantId, slug])
+  @@index([isDeleted])
+  @@map("articles")
+}
+
+model Media {
+  id         String   @id @default(cuid())
+  tenantId   String
+  filename   String
+  url        String
+  driveFileId String? // Google Drive file ID
+  mimeType   String
+  size       Int
+  alt        String?
+  caption    String?
+  folder     String?
+  uploadedBy String
+  
+  // Soft delete
+  isDeleted  Boolean  @default(false)
+  deletedAt  DateTime?
+  deletedBy  String?
+  
+  createdAt  DateTime @default(now())
+  
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  
+  @@index([isDeleted])
+  @@map("media")
+}
+
+model Menu {
+  id        String   @id @default(cuid())
+  tenantId  String
+  location  String   // HEADER, FOOTER, SIDEBAR
+  items     Json     // Menu structure
+  
+  updatedAt DateTime @updatedAt
+  
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  
+  @@unique([tenantId, location])
+  @@map("menus")
+}
+
+// ============================================================
+// SYSTEM
+// ============================================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     Json             // Localized
+  message   Json             // Localized
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  data      Json?
+  
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+  
+  user      User             @relation(fields: [userId], references: [id])
+  
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  userId    String
+  action    String   // CREATE, UPDATE, DELETE, LOGIN, etc
+  entity    String   // Table/model name
+  entityId  String?
+  oldValue  Json?
+  newValue  Json?
+  ipAddress String?
+  userAgent String?
+  
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+  
+  @@index([entity, entityId])
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  tenantId    String
+  key         String
+  value       String   @db.Text
+  type        String   @default("string") // string, number, boolean, json
+  group       String?
+  description String?
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([tenantId, key])
+  @@map("settings")
+}
