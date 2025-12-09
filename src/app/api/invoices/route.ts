@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     if (!booking) return errorResponse("Booking not found", 404);
 
     const totalPaid = booking.payments.reduce(
-      (sum, p) => sum + Number(p.amount),
+      (sum: number, p: { amount: unknown }) => sum + Number(p.amount),
       0,
     );
     const balance = Number(booking.totalPrice) - totalPaid;
