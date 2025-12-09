@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { DataTable, Column, Badge, Button, Card } from "@/components/ui";
+import {
+  DataTable,
+  Column,
+  Badge,
+  Button,
+  Card,
+  SidebarModal,
+} from "@/components/ui";
+import { AgentForm } from "./agent-form";
 import { Eye, Edit, Users, Award, TrendingUp } from "lucide-react";
 
 interface Agent {
@@ -9,11 +17,14 @@ interface Agent {
   code: string;
   name: string;
   companyName: string | null;
+  email: string | null;
   phone: string;
+  address: string | null;
   city: string | null;
   tier: string;
   commissionRate: string;
   isActive: boolean;
+  createdAt: string;
   _count: { bookings: number; commissions: number };
 }
 
@@ -34,6 +45,13 @@ export default function AgentsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"view" | "create" | "edit">(
+    "create",
+  );
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
   const fetchAgents = useCallback(async () => {
     setIsLoading(true);
@@ -58,6 +76,26 @@ export default function AgentsPage() {
   }, [fetchAgents]);
 
   const totalBookings = agents.reduce((sum, a) => sum + a._count.bookings, 0);
+
+  const handleView = (agent: Agent) => {
+    setSelectedAgent(agent);
+    setModalMode("view");
+    setIsModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setSelectedAgent(null);
+    setModalMode("create");
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = () => setModalMode("edit");
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedAgent(null);
+    fetchAgents();
+  };
 
   const columns: Column<Agent>[] = [
     {
@@ -122,12 +160,20 @@ export default function AgentsPage() {
       key: "actions",
       header: "",
       width: "80px",
-      render: () => (
+      render: (row) => (
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => handleView(row)}>
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setSelectedAgent(row);
+              setModalMode("edit");
+              setIsModalOpen(true);
+            }}
+          >
             <Edit className="h-4 w-4" />
           </Button>
         </div>
@@ -191,7 +237,7 @@ export default function AgentsPage() {
         searchPlaceholder="Search agents..."
         onSearch={setSearch}
         addLabel="Add Agent"
-        onAdd={() => {}}
+        onAdd={handleCreate}
         pagination={{
           page,
           pageSize,
@@ -201,6 +247,27 @@ export default function AgentsPage() {
         }}
         emptyMessage="No agents found"
       />
+
+      <SidebarModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={
+          modalMode === "create"
+            ? "Add Agent"
+            : modalMode === "edit"
+              ? "Edit Agent"
+              : "Agent Details"
+        }
+        size="md"
+      >
+        <AgentForm
+          mode={modalMode}
+          agent={selectedAgent}
+          onSuccess={handleSuccess}
+          onCancel={() => setIsModalOpen(false)}
+          onEdit={modalMode === "view" ? handleEdit : undefined}
+        />
+      </SidebarModal>
     </div>
   );
 }

@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { DataTable, Column, Badge, Button, Card } from "@/components/ui";
+import {
+  DataTable,
+  Column,
+  Badge,
+  Button,
+  Card,
+  SidebarModal,
+} from "@/components/ui";
+import { VoucherForm } from "./voucher-form";
 import { Eye, Edit, Tag, Ticket, Megaphone, TrendingUp } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
 
@@ -11,11 +19,14 @@ interface Voucher {
   name: string;
   type: string;
   value: string;
+  minPurchase: string | null;
+  maxDiscount: string | null;
   quota: number | null;
   used: number;
   startDate: string;
   endDate: string;
   isActive: boolean;
+  description: string | null;
   _count: { bookings: number };
 }
 
@@ -25,6 +36,13 @@ export default function MarketingPage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"view" | "create" | "edit">(
+    "create",
+  );
+  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
 
   const fetchVouchers = useCallback(async () => {
     setIsLoading(true);
@@ -50,6 +68,26 @@ export default function MarketingPage() {
 
   const activeVouchers = vouchers.filter((v) => v.isActive).length;
   const totalUsed = vouchers.reduce((sum, v) => sum + v.used, 0);
+
+  const handleView = (voucher: Voucher) => {
+    setSelectedVoucher(voucher);
+    setModalMode("view");
+    setIsModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setSelectedVoucher(null);
+    setModalMode("create");
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = () => setModalMode("edit");
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedVoucher(null);
+    fetchVouchers();
+  };
 
   const columns: Column<Voucher>[] = [
     {
@@ -120,12 +158,20 @@ export default function MarketingPage() {
       key: "actions",
       header: "",
       width: "80px",
-      render: () => (
+      render: (row) => (
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => handleView(row)}>
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setSelectedVoucher(row);
+              setModalMode("edit");
+              setIsModalOpen(true);
+            }}
+          >
             <Edit className="h-4 w-4" />
           </Button>
         </div>
@@ -200,7 +246,7 @@ export default function MarketingPage() {
         data={vouchers}
         isLoading={isLoading}
         addLabel="Create Voucher"
-        onAdd={() => {}}
+        onAdd={handleCreate}
         pagination={{
           page,
           pageSize,
@@ -210,6 +256,27 @@ export default function MarketingPage() {
         }}
         emptyMessage="No vouchers found"
       />
+
+      <SidebarModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={
+          modalMode === "create"
+            ? "Create Voucher"
+            : modalMode === "edit"
+              ? "Edit Voucher"
+              : "Voucher Details"
+        }
+        size="md"
+      >
+        <VoucherForm
+          mode={modalMode}
+          voucher={selectedVoucher}
+          onSuccess={handleSuccess}
+          onCancel={() => setIsModalOpen(false)}
+          onEdit={modalMode === "view" ? handleEdit : undefined}
+        />
+      </SidebarModal>
     </div>
   );
 }

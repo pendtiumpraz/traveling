@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { DataTable, Column, Badge, Button, Card } from "@/components/ui";
+import {
+  DataTable,
+  Column,
+  Badge,
+  Button,
+  Card,
+  SidebarModal,
+} from "@/components/ui";
+import { EmployeeForm } from "./employee-form";
 import { Eye, Edit, Users, UserCheck, Calendar } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -9,13 +17,14 @@ interface Employee {
   id: string;
   nip: string;
   name: string;
+  email: string | null;
   position: string;
   department: string;
   phone: string | null;
   joinDate: string;
   status: string;
   isTourLeader: boolean;
-  baseSalary: string;
+  baseSalary: string | null;
   branch: { name: string } | null;
 }
 
@@ -36,6 +45,15 @@ export default function HRISPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"view" | "create" | "edit">(
+    "create",
+  );
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+    null,
+  );
 
   const fetchEmployees = useCallback(async () => {
     setIsLoading(true);
@@ -61,6 +79,26 @@ export default function HRISPage() {
 
   const activeCount = employees.filter((e) => e.status === "ACTIVE").length;
   const tourLeaders = employees.filter((e) => e.isTourLeader).length;
+
+  const handleView = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setModalMode("view");
+    setIsModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setSelectedEmployee(null);
+    setModalMode("create");
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = () => setModalMode("edit");
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedEmployee(null);
+    fetchEmployees();
+  };
 
   const columns: Column<Employee>[] = [
     {
@@ -122,12 +160,20 @@ export default function HRISPage() {
       key: "actions",
       header: "",
       width: "80px",
-      render: () => (
+      render: (row) => (
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => handleView(row)}>
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setSelectedEmployee(row);
+              setModalMode("edit");
+              setIsModalOpen(true);
+            }}
+          >
             <Edit className="h-4 w-4" />
           </Button>
         </div>
@@ -191,7 +237,7 @@ export default function HRISPage() {
         searchPlaceholder="Search employees..."
         onSearch={setSearch}
         addLabel="Add Employee"
-        onAdd={() => {}}
+        onAdd={handleCreate}
         pagination={{
           page,
           pageSize,
@@ -201,6 +247,27 @@ export default function HRISPage() {
         }}
         emptyMessage="No employees found"
       />
+
+      <SidebarModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={
+          modalMode === "create"
+            ? "Add Employee"
+            : modalMode === "edit"
+              ? "Edit Employee"
+              : "Employee Details"
+        }
+        size="md"
+      >
+        <EmployeeForm
+          mode={modalMode}
+          employee={selectedEmployee}
+          onSuccess={handleSuccess}
+          onCancel={() => setIsModalOpen(false)}
+          onEdit={modalMode === "view" ? handleEdit : undefined}
+        />
+      </SidebarModal>
     </div>
   );
 }

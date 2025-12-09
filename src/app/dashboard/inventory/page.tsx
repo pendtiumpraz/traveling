@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { DataTable, Column, Badge, Button, Card } from "@/components/ui";
+import {
+  DataTable,
+  Column,
+  Badge,
+  Button,
+  Card,
+  SidebarModal,
+} from "@/components/ui";
+import { ProductForm } from "./product-form";
 import { Eye, Edit, Package, Boxes, AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -9,11 +17,16 @@ interface Product {
   id: string;
   code: string;
   name: string;
+  sku: string;
   category: string;
   unit: string;
+  price: string | null;
+  cost: string | null;
   buyPrice: string;
   sellPrice: string | null;
+  currentStock: number;
   minStock: number;
+  description: string | null;
   isActive: boolean;
   stocks: { quantity: number; warehouse: { name: string } }[];
 }
@@ -25,6 +38,13 @@ export default function InventoryPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"view" | "create" | "edit">(
+    "create",
+  );
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
@@ -56,6 +76,26 @@ export default function InventoryPage() {
     const qty = p.stocks.reduce((s, st) => s + st.quantity, 0);
     return qty < p.minStock;
   }).length;
+
+  const handleView = (product: Product) => {
+    setSelectedProduct(product);
+    setModalMode("view");
+    setIsModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setSelectedProduct(null);
+    setModalMode("create");
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = () => setModalMode("edit");
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+    fetchProducts();
+  };
 
   const columns: Column<Product>[] = [
     {
@@ -123,12 +163,20 @@ export default function InventoryPage() {
       key: "actions",
       header: "",
       width: "80px",
-      render: () => (
+      render: (row) => (
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => handleView(row)}>
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setSelectedProduct(row);
+              setModalMode("edit");
+              setIsModalOpen(true);
+            }}
+          >
             <Edit className="h-4 w-4" />
           </Button>
         </div>
@@ -186,7 +234,7 @@ export default function InventoryPage() {
         searchPlaceholder="Search products..."
         onSearch={setSearch}
         addLabel="Add Product"
-        onAdd={() => {}}
+        onAdd={handleCreate}
         pagination={{
           page,
           pageSize,
@@ -196,6 +244,27 @@ export default function InventoryPage() {
         }}
         emptyMessage="No products found"
       />
+
+      <SidebarModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={
+          modalMode === "create"
+            ? "Add Product"
+            : modalMode === "edit"
+              ? "Edit Product"
+              : "Product Details"
+        }
+        size="md"
+      >
+        <ProductForm
+          mode={modalMode}
+          product={selectedProduct}
+          onSuccess={handleSuccess}
+          onCancel={() => setIsModalOpen(false)}
+          onEdit={modalMode === "view" ? handleEdit : undefined}
+        />
+      </SidebarModal>
     </div>
   );
 }
