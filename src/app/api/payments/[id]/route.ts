@@ -92,7 +92,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         },
       });
       const totalPaid = allPayments.reduce(
-        (sum, p) => sum + Number(p.amount),
+        (sum: number, p: { amount: unknown }) => sum + Number(p.amount),
         0,
       );
       const bookingTotal = Number(existing.booking.totalPrice);
