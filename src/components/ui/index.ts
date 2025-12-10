@@ -9,3 +9,8 @@ export * from "./toast";
 export * from "./skeleton";
 export * from "./confirm-dialog";
 export * from "./empty-state";
+export * from "./dropdown";
+export * from "./tabs";
+export * from "./avatar";
+export * from "./breadcrumb";
+export * from "./stat-card";
