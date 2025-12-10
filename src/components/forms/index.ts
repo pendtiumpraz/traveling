@@ -6,3 +6,4 @@ export * from "./schedule-form";
 export * from "./employee-form";
 export * from "./voucher-form";
 export * from "./agent-form";
+export * from "./product-form";
