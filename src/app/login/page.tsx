@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -51,7 +51,16 @@ function LoginForm() {
       if (result?.error) {
         setAuthError("Invalid email or password");
       } else {
-        router.push(callbackUrl);
+        // Get session to check user roles
+        const session = await getSession();
+        const roles = session?.user?.roles || [];
+
+        // Customer role redirects to portal
+        if (roles.includes("CUSTOMER") && roles.length === 1) {
+          router.push("/portal");
+        } else {
+          router.push(callbackUrl);
+        }
         router.refresh();
       }
     } catch {

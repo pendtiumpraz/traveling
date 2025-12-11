@@ -71,7 +71,8 @@ export default function RegisterPage() {
       if (result?.error) {
         router.push("/login");
       } else {
-        router.push("/dashboard");
+        // New registrations are customers, redirect to portal
+        router.push("/portal");
         router.refresh();
       }
     } catch (err) {
