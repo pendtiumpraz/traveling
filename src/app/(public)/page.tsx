@@ -36,7 +36,6 @@ import {
   BarChart3,
   Smartphone,
   Settings,
-  Lock,
   Layers,
   Building2,
 } from "lucide-react";
@@ -1021,27 +1020,6 @@ function SystemFeaturesSection() {
                 <span className="text-sm">{feature}</span>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Security & Tech Stack */}
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
-          <div className="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 p-8">
-            <Lock className="h-12 w-12 text-emerald-400 mb-4" />
-            <h3 className="text-xl font-bold mb-2">Keamanan Terjamin</h3>
-            <p className="text-gray-400">
-              Dibangun dengan NextAuth v5, enkripsi data, role-based access
-              control, dan audit trail untuk menjaga keamanan data bisnis dan
-              jamaah Anda.
-            </p>
-          </div>
-          <div className="rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 p-8">
-            <Layers className="h-12 w-12 text-purple-400 mb-4" />
-            <h3 className="text-xl font-bold mb-2">Teknologi Modern</h3>
-            <p className="text-gray-400">
-              Next.js 15, TypeScript, Prisma ORM, PostgreSQL, Tailwind CSS 4,
-              dan React Query untuk performa optimal dan kemudahan pengembangan.
-            </p>
           </div>
         </div>
 
