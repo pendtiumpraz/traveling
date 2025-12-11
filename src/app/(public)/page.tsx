@@ -19,6 +19,10 @@ import {
   Calendar,
   CheckCircle,
   ArrowRight,
+  Tag,
+  Zap,
+  Clock,
+  Percent,
 } from "lucide-react";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -124,6 +128,12 @@ export default function LandingPage() {
               className="text-gray-600 hover:text-emerald-600 font-medium"
             >
               Paket
+            </Link>
+            <Link
+              href="/promo"
+              className="text-gray-600 hover:text-emerald-600 font-medium"
+            >
+              Promo
             </Link>
             <Link
               href="#features"
@@ -332,6 +342,9 @@ export default function LandingPage() {
           )}
         </div>
       </section>
+
+      {/* Promo Section */}
+      <PromoSection />
 
       {/* Gallery Section */}
       <section className="py-24 px-4">
@@ -544,5 +557,164 @@ export default function LandingPage() {
         <MessageCircle className="h-7 w-7" />
       </a>
     </div>
+  );
+}
+
+// Promo Section Component
+interface Promotion {
+  id: string;
+  title: string;
+  slug: string;
+  type: string;
+  description: string | null;
+  discountType: string;
+  discountValue: number;
+  thumbnail: string | null;
+  badgeText: string | null;
+  badgeColor: string | null;
+  daysLeft: number;
+  isExpiringSoon: boolean;
+  isFeatured: boolean;
+}
+
+function PromoSection() {
+  const [promos, setPromos] = useState<Promotion[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/promotions?public=true&home=true&limit=6")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) setPromos(data.data);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading || promos.length === 0) return null;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const getTypeBgColor = (type: string) => {
+    const colors: Record<string, string> = {
+      EARLY_BIRD: "from-blue-500 to-blue-600",
+      LAST_MINUTE: "from-orange-500 to-orange-600",
+      FLASH_SALE: "from-red-500 to-red-600",
+      SEASONAL: "from-green-500 to-green-600",
+      PACKAGE_DEAL: "from-purple-500 to-purple-600",
+      GROUP_DISCOUNT: "from-indigo-500 to-indigo-600",
+      REFERRAL: "from-pink-500 to-pink-600",
+      LOYALTY: "from-yellow-500 to-yellow-600",
+    };
+    return colors[type] || "from-gray-500 to-gray-600";
+  };
+
+  return (
+    <section className="bg-gradient-to-b from-white to-gray-50 py-24 px-4">
+      <div className="mx-auto max-w-7xl">
+        <div className="text-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-red-100 px-4 py-2 text-red-600 font-semibold">
+            <Zap className="h-4 w-4" />
+            Promo Spesial
+          </span>
+          <h2 className="mt-4 text-4xl font-bold text-gray-900">
+            Penawaran Terbaik untuk Anda
+          </h2>
+          <p className="mt-4 text-lg text-gray-600">
+            Hemat lebih banyak dengan promo menarik kami
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {promos.map((promo) => (
+            <Link key={promo.id} href={`/promo/${promo.slug}`}>
+              <div className="group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all h-full">
+                {/* Thumbnail */}
+                <div className="relative h-48 bg-gray-100">
+                  {promo.thumbnail ? (
+                    <Image
+                      src={promo.thumbnail}
+                      alt={promo.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div
+                      className={`flex h-full items-center justify-center bg-gradient-to-br ${getTypeBgColor(promo.type)}`}
+                    >
+                      <Percent className="h-16 w-16 text-white/50" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+
+                  {/* Discount Badge */}
+                  <div className="absolute right-4 top-4">
+                    <span className="rounded-lg bg-red-500 px-3 py-2 text-lg font-bold text-white shadow-lg">
+                      {promo.discountType === "PERCENTAGE"
+                        ? `${promo.discountValue}%`
+                        : formatCurrency(promo.discountValue)}
+                    </span>
+                  </div>
+
+                  {/* Expiring Badge */}
+                  {promo.isExpiringSoon && (
+                    <div className="absolute left-4 top-4">
+                      <span className="flex items-center gap-1 rounded-full bg-orange-500 px-2 py-1 text-xs font-medium text-white">
+                        <Zap className="h-3 w-3" />
+                        Segera Berakhir
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Title Overlay */}
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="text-xl font-bold text-white line-clamp-2">
+                      {promo.title}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-5">
+                  {promo.description && (
+                    <p className="text-sm text-gray-500 line-clamp-2 mb-3">
+                      {promo.description}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1 text-sm text-gray-500">
+                      <Clock className="h-4 w-4" />
+                      {promo.daysLeft} hari lagi
+                    </span>
+                    <span className="flex items-center gap-1 text-sm font-medium text-emerald-600 group-hover:underline">
+                      Lihat Detail
+                      <ChevronRight className="h-4 w-4" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* View All Button */}
+        <div className="mt-12 text-center">
+          <Link
+            href="/promo"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:shadow-emerald-500/30 transition-all"
+          >
+            <Tag className="h-5 w-5" />
+            Lihat Semua Promo
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }

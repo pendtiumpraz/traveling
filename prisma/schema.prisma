@@ -360,6 +360,17 @@ enum VoucherType {
   FIXED_AMOUNT
 }
 
+enum PromotionType {
+  EARLY_BIRD      // Diskon pemesanan jauh hari
+  LAST_MINUTE     // Diskon menit terakhir
+  FLASH_SALE      // Flash sale terbatas waktu
+  SEASONAL        // Promo musiman (Ramadan, Lebaran, dll)
+  PACKAGE_DEAL    // Bundling paket
+  GROUP_DISCOUNT  // Diskon rombongan
+  REFERRAL        // Bonus referral
+  LOYALTY         // Reward member setia
+}
+
 enum NotificationType {
   INFO
   PAYMENT
@@ -426,6 +437,7 @@ model Tenant {
   sales           Sales[]
   campaigns       Campaign[]
   vouchers        Voucher[]
+  promotions      Promotion[]
   landingPages    LandingPage[]
   leads           Lead[]
   devices         Device[]
@@ -1943,6 +1955,59 @@ model Voucher {
   @@unique([tenantId, code])
   @@index([isDeleted])
   @@map("vouchers")
+}
+
+model Promotion {
+  id              String        @id @default(cuid())
+  tenantId        String
+  title           String
+  slug            String        @unique
+  type            PromotionType
+  description     String?       @db.Text
+  content         String?       @db.Text
+  // Discount
+  discountType    VoucherType   @default(PERCENTAGE)
+  discountValue   Decimal       @db.Decimal(15, 2)
+  maxDiscount     Decimal?      @db.Decimal(15, 2)
+  minPurchase     Decimal?      @db.Decimal(15, 2)
+  // Applicability
+  packageIds      Json?
+  businessTypes   Json?
+  // Validity
+  startDate       DateTime
+  endDate         DateTime
+  // Quota
+  quota           Int?
+  used            Int           @default(0)
+  // Display
+  thumbnail       String?
+  banner          String?
+  images          Json?
+  badgeText       String?
+  badgeColor      String?
+  // Priority
+  priority        Int           @default(0)
+  showOnHome      Boolean       @default(false)
+  showOnListing   Boolean       @default(true)
+  isFeatured      Boolean       @default(false)
+  // Terms
+  terms           String?       @db.Text
+  // Status
+  isActive        Boolean       @default(true)
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  // Soft delete
+  isDeleted       Boolean       @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  @@index([isDeleted])
+  @@index([startDate, endDate])
+  @@index([type])
+  @@map("promotions")
 }
 
 model LandingPage {
