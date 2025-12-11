@@ -154,15 +154,18 @@
 
 ## 12. MARKETING
 
-| Feature             | Status      | Notes            |
-| ------------------- | ----------- | ---------------- |
-| Voucher CRUD        | ✅ DONE     | API + UI         |
-| Discount Types      | ✅ DONE     | Percentage/Fixed |
-| Validity Period     | ✅ DONE     | Start/End date   |
-| Usage Quota         | ✅ DONE     | Quota tracking   |
-| Campaign Management | ❌ NOT DONE |                  |
-| Landing Pages       | ❌ NOT DONE |                  |
-| Referral System     | ❌ NOT DONE |                  |
+| Feature               | Status      | Notes                                              |
+| --------------------- | ----------- | -------------------------------------------------- |
+| Voucher CRUD          | ✅ DONE     | API + UI                                           |
+| Discount Types        | ✅ DONE     | Percentage/Fixed                                   |
+| Validity Period       | ✅ DONE     | Start/End date                                     |
+| Usage Quota           | ✅ DONE     | Quota tracking                                     |
+| **Promotion System**  | ✅ DONE     | 8 types (Early Bird, Last Minute, Flash Sale, etc) |
+| Promo Listing Page    | ✅ DONE     | /promo with search, filter, featured               |
+| Promo Detail Page     | ✅ DONE     | /promo/[slug] countdown, quota, packages           |
+| Landing Promo Section | ✅ DONE     | Shows showOnHome promotions                        |
+| Campaign Management   | ❌ NOT DONE |                                                    |
+| Referral System       | ❌ NOT DONE |                                                    |
 
 ## 13. AGENTS (SALES PARTNERS)
 
