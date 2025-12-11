@@ -81,6 +81,35 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Assign default role (CUSTOMER)
+    let customerRole = await prisma.role.findFirst({
+      where: { tenantId, name: "CUSTOMER" },
+    });
+
+    if (!customerRole) {
+      customerRole = await prisma.role.create({
+        data: {
+          tenantId,
+          name: "CUSTOMER",
+          displayName: { id: "Pelanggan", en: "Customer" },
+          permissions: [
+            "booking:create",
+            "booking:read:own",
+            "payment:create",
+            "profile:update",
+          ],
+          isSystem: true,
+        },
+      });
+    }
+
+    await prisma.userRole.create({
+      data: {
+        userId: user.id,
+        roleId: customerRole.id,
+      },
+    });
+
     // Create audit log
     await prisma.auditLog.create({
       data: {
