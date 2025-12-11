@@ -71,11 +71,21 @@ export async function GET(request: NextRequest) {
         include: {
           package: {
             select: {
+              id: true,
               code: true,
               name: true,
               type: true,
               duration: true,
               nights: true,
+              priceQuad: true,
+              priceTriple: true,
+              priceDouble: true,
+              priceSingle: true,
+              destinations: true,
+              inclusions: true,
+              itinerary: {
+                orderBy: { day: "asc" },
+              },
             },
           },
           _count: {

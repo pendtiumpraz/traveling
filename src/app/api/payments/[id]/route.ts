@@ -8,6 +8,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/api-response";
 import { z } from "zod";
+import { processPaymentVerified } from "@/lib/booking-flow";
 
 const updatePaymentSchema = z.object({
   status: z
@@ -82,8 +83,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       },
     });
 
-    // Recalculate booking payment status if payment status changed
-    if (data.status) {
+    // Process payment verification and update booking/invoice
+    if (data.status === "SUCCESS") {
+      try {
+        await processPaymentVerified(id);
+      } catch (flowError) {
+        console.error("Payment flow error:", flowError);
+      }
+    } else if (data.status) {
+      // Recalculate booking payment status for other status changes
       const allPayments = await prisma.payment.findMany({
         where: {
           bookingId: existing.bookingId,

@@ -8,6 +8,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/api-response";
 import { z } from "zod";
+import { processBookingStatusChange } from "@/lib/booking-flow";
 
 const updateBookingSchema = z.object({
   roomType: z.enum(["QUAD", "TRIPLE", "DOUBLE", "TWIN", "SINGLE"]).optional(),
@@ -167,6 +168,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         package: { select: { name: true, type: true } },
       },
     });
+
+    // Process booking flow on status change
+    if (data.status && data.status !== existing.status) {
+      try {
+        await processBookingStatusChange(id, existing.status, data.status);
+      } catch (flowError) {
+        console.error("Booking flow error:", flowError);
+        // Don't fail the update, just log the error
+      }
+    }
 
     await prisma.auditLog.create({
       data: {

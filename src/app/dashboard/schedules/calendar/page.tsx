@@ -10,9 +10,12 @@ import {
   List,
   Plane,
   Users,
+  LayoutGrid,
+  GanttChart,
 } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
+import { AgendaCalendarView } from "./agenda-view";
 
 interface Schedule {
   id: string;
@@ -47,6 +50,7 @@ const MONTHS = [
 ];
 
 export default function ScheduleCalendarPage() {
+  const [viewMode, setViewMode] = useState<"calendar" | "agenda">("agenda");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -163,6 +167,31 @@ export default function ScheduleCalendarPage() {
           <p className="text-gray-500">View departures in calendar format</p>
         </div>
         <div className="flex gap-2">
+          {/* View Toggle */}
+          <div className="flex rounded-lg border overflow-hidden">
+            <button
+              onClick={() => setViewMode("calendar")}
+              className={`px-3 py-2 flex items-center gap-1 text-sm ${
+                viewMode === "calendar"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+              Calendar
+            </button>
+            <button
+              onClick={() => setViewMode("agenda")}
+              className={`px-3 py-2 flex items-center gap-1 text-sm ${
+                viewMode === "agenda"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <GanttChart className="h-4 w-4" />
+              Agenda
+            </button>
+          </div>
           <Link href="/dashboard/schedules">
             <Button variant="outline">
               <List className="mr-2 h-4 w-4" />
@@ -178,241 +207,250 @@ export default function ScheduleCalendarPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
-        {/* Calendar */}
-        <Card className="col-span-3 p-6">
-          {/* Calendar Header */}
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={prevMonth}
-                className="rounded-lg p-2 hover:bg-gray-100 transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <h2 className="text-xl font-semibold min-w-[200px] text-center">
-                {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </h2>
-              <button
-                onClick={nextMonth}
-                className="rounded-lg p-2 hover:bg-gray-100 transition-colors"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
-            <Button variant="outline" size="sm" onClick={goToToday}>
-              Today
-            </Button>
-          </div>
+      {/* Agenda View */}
+      {viewMode === "agenda" && <AgendaCalendarView />}
 
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {/* Day Headers */}
-            {DAYS.map((day) => (
-              <div
-                key={day}
-                className="py-2 text-center text-sm font-medium text-gray-500"
-              >
-                {day}
+      {/* Calendar View */}
+      {viewMode === "calendar" && (
+        <div className="grid grid-cols-4 gap-6">
+          {/* Calendar */}
+          <Card className="col-span-3 p-6">
+            {/* Calendar Header */}
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={prevMonth}
+                  className="rounded-lg p-2 hover:bg-gray-100 transition-colors"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <h2 className="text-xl font-semibold min-w-[200px] text-center">
+                  {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
+                </h2>
+                <button
+                  onClick={nextMonth}
+                  className="rounded-lg p-2 hover:bg-gray-100 transition-colors"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
               </div>
-            ))}
+              <Button variant="outline" size="sm" onClick={goToToday}>
+                Today
+              </Button>
+            </div>
 
-            {/* Days */}
-            {days.map((day, index) => {
-              if (day === null) {
-                return (
-                  <div key={`empty-${index}`} className="h-28 bg-gray-50/50" />
-                );
-              }
-
-              const daySchedules = getSchedulesForDate(day);
-              const hasSchedules = daySchedules.length > 0;
-
-              return (
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {/* Day Headers */}
+              {DAYS.map((day) => (
                 <div
                   key={day}
-                  onClick={() =>
-                    setSelectedDate(
-                      new Date(
-                        currentDate.getFullYear(),
-                        currentDate.getMonth(),
-                        day,
-                      ),
-                    )
-                  }
-                  className={`h-28 border rounded-lg p-1 cursor-pointer transition-all ${
-                    isToday(day)
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-100 hover:border-primary/50 hover:bg-gray-50"
-                  } ${
-                    selectedDate?.getDate() === day &&
-                    selectedDate?.getMonth() === currentDate.getMonth()
-                      ? "ring-2 ring-primary"
-                      : ""
-                  }`}
+                  className="py-2 text-center text-sm font-medium text-gray-500"
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span
-                      className={`text-sm font-medium ${
-                        isToday(day)
-                          ? "flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      {day}
-                    </span>
-                    {hasSchedules && (
-                      <span className="text-xs text-gray-400">
-                        {daySchedules.length}
-                      </span>
-                    )}
-                  </div>
-                  <div className="space-y-1 overflow-hidden">
-                    {daySchedules.slice(0, 2).map((schedule) => (
-                      <div
-                        key={schedule.id}
-                        className={`rounded px-1.5 py-0.5 text-xs truncate border ${getBusinessTypeColor(schedule.package.businessType)}`}
-                      >
-                        {schedule.package.name.substring(0, 15)}...
-                      </div>
-                    ))}
-                    {daySchedules.length > 2 && (
-                      <div className="text-xs text-gray-400 text-center">
-                        +{daySchedules.length - 2} more
-                      </div>
-                    )}
-                  </div>
+                  {day}
                 </div>
-              );
-            })}
-          </div>
+              ))}
 
-          {/* Legend */}
-          <div className="mt-6 flex items-center gap-6 border-t pt-4">
-            <span className="text-sm text-gray-500">Legend:</span>
-            {[
-              { label: "Umroh", color: "bg-emerald-100 border-emerald-200" },
-              { label: "Haji", color: "bg-green-100 border-green-200" },
-              { label: "Outbound", color: "bg-blue-100 border-blue-200" },
-              { label: "Domestic", color: "bg-orange-100 border-orange-200" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <div className={`h-3 w-3 rounded border ${item.color}`} />
-                <span className="text-sm text-gray-600">{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+              {/* Days */}
+              {days.map((day, index) => {
+                if (day === null) {
+                  return (
+                    <div
+                      key={`empty-${index}`}
+                      className="h-28 bg-gray-50/50"
+                    />
+                  );
+                }
 
-        {/* Sidebar - Selected Date Details */}
-        <Card className="p-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5" />
-            {selectedDate
-              ? `${selectedDate.getDate()} ${MONTHS[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`
-              : "Select a Date"}
-          </h3>
+                const daySchedules = getSchedulesForDate(day);
+                const hasSchedules = daySchedules.length > 0;
 
-          {selectedDate && selectedSchedules.length === 0 && (
-            <div className="text-center py-8">
-              <Plane className="mx-auto h-12 w-12 text-gray-300" />
-              <p className="mt-2 text-sm text-gray-500">
-                No departures on this date
-              </p>
-              <Link href="/dashboard/schedules/new">
-                <Button size="sm" className="mt-4">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Schedule
-                </Button>
-              </Link>
-            </div>
-          )}
-
-          {selectedSchedules.length > 0 && (
-            <div className="space-y-4">
-              {selectedSchedules.map((schedule) => (
-                <Link
-                  key={schedule.id}
-                  href={`/dashboard/schedules?edit=${schedule.id}`}
-                  className="block"
-                >
-                  <div className="rounded-lg border p-4 hover:border-primary hover:bg-gray-50 transition-all">
-                    <div className="flex items-start justify-between mb-2">
-                      <Badge
-                        className={getBusinessTypeColor(
-                          schedule.package.businessType,
-                        )}
+                return (
+                  <div
+                    key={day}
+                    onClick={() =>
+                      setSelectedDate(
+                        new Date(
+                          currentDate.getFullYear(),
+                          currentDate.getMonth(),
+                          day,
+                        ),
+                      )
+                    }
+                    className={`h-28 border rounded-lg p-1 cursor-pointer transition-all ${
+                      isToday(day)
+                        ? "border-primary bg-primary/5"
+                        : "border-gray-100 hover:border-primary/50 hover:bg-gray-50"
+                    } ${
+                      selectedDate?.getDate() === day &&
+                      selectedDate?.getMonth() === currentDate.getMonth()
+                        ? "ring-2 ring-primary"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span
+                        className={`text-sm font-medium ${
+                          isToday(day)
+                            ? "flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white"
+                            : "text-gray-700"
+                        }`}
                       >
-                        {schedule.package.businessType}
-                      </Badge>
-                      <div
-                        className={`h-2 w-2 rounded-full ${getStatusColor(schedule.status, schedule.available)}`}
-                      />
+                        {day}
+                      </span>
+                      {hasSchedules && (
+                        <span className="text-xs text-gray-400">
+                          {daySchedules.length}
+                        </span>
+                      )}
                     </div>
-                    <h4 className="font-medium text-gray-900 line-clamp-2">
-                      {schedule.package.name}
-                    </h4>
-                    <div className="mt-2 space-y-1 text-sm text-gray-500">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        {schedule.available}/{schedule.quota} seats
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4" />
-                        {schedule.package.duration} days
-                      </div>
+                    <div className="space-y-1 overflow-hidden">
+                      {daySchedules.slice(0, 2).map((schedule) => (
+                        <div
+                          key={schedule.id}
+                          className={`rounded px-1.5 py-0.5 text-xs truncate border ${getBusinessTypeColor(schedule.package.businessType)}`}
+                        >
+                          {schedule.package.name.substring(0, 15)}...
+                        </div>
+                      ))}
+                      {daySchedules.length > 2 && (
+                        <div className="text-xs text-gray-400 text-center">
+                          +{daySchedules.length - 2} more
+                        </div>
+                      )}
                     </div>
-                    <p className="mt-2 text-sm font-semibold text-primary">
-                      {formatCurrency(schedule.priceQuad)}/pax
-                    </p>
                   </div>
-                </Link>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="mt-6 flex items-center gap-6 border-t pt-4">
+              <span className="text-sm text-gray-500">Legend:</span>
+              {[
+                { label: "Umroh", color: "bg-emerald-100 border-emerald-200" },
+                { label: "Haji", color: "bg-green-100 border-green-200" },
+                { label: "Outbound", color: "bg-blue-100 border-blue-200" },
+                { label: "Domestic", color: "bg-orange-100 border-orange-200" },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <div className={`h-3 w-3 rounded border ${item.color}`} />
+                  <span className="text-sm text-gray-600">{item.label}</span>
+                </div>
               ))}
             </div>
-          )}
+          </Card>
 
-          {/* Upcoming Departures */}
-          <div className="mt-6 pt-6 border-t">
-            <h4 className="font-medium text-gray-900 mb-3">
-              Upcoming Departures
-            </h4>
-            <div className="space-y-2">
-              {schedules
-                .filter((s) => new Date(s.departureDate) >= today)
-                .sort(
-                  (a, b) =>
-                    new Date(a.departureDate).getTime() -
-                    new Date(b.departureDate).getTime(),
-                )
-                .slice(0, 5)
-                .map((schedule) => (
-                  <div
+          {/* Sidebar - Selected Date Details */}
+          <Card className="p-6">
+            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5" />
+              {selectedDate
+                ? `${selectedDate.getDate()} ${MONTHS[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`
+                : "Select a Date"}
+            </h3>
+
+            {selectedDate && selectedSchedules.length === 0 && (
+              <div className="text-center py-8">
+                <Plane className="mx-auto h-12 w-12 text-gray-300" />
+                <p className="mt-2 text-sm text-gray-500">
+                  No departures on this date
+                </p>
+                <Link href="/dashboard/schedules/new">
+                  <Button size="sm" className="mt-4">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Schedule
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {selectedSchedules.length > 0 && (
+              <div className="space-y-4">
+                {selectedSchedules.map((schedule) => (
+                  <Link
                     key={schedule.id}
-                    className="flex items-center justify-between text-sm"
+                    href={`/dashboard/schedules?edit=${schedule.id}`}
+                    className="block"
                   >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${getStatusColor(schedule.status, schedule.available)}`}
-                      />
-                      <span className="text-gray-600 truncate max-w-[120px]">
+                    <div className="rounded-lg border p-4 hover:border-primary hover:bg-gray-50 transition-all">
+                      <div className="flex items-start justify-between mb-2">
+                        <Badge
+                          className={getBusinessTypeColor(
+                            schedule.package.businessType,
+                          )}
+                        >
+                          {schedule.package.businessType}
+                        </Badge>
+                        <div
+                          className={`h-2 w-2 rounded-full ${getStatusColor(schedule.status, schedule.available)}`}
+                        />
+                      </div>
+                      <h4 className="font-medium text-gray-900 line-clamp-2">
                         {schedule.package.name}
+                      </h4>
+                      <div className="mt-2 space-y-1 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          {schedule.available}/{schedule.quota} seats
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CalendarIcon className="h-4 w-4" />
+                          {schedule.package.duration} days
+                        </div>
+                      </div>
+                      <p className="mt-2 text-sm font-semibold text-primary">
+                        {formatCurrency(schedule.priceQuad)}/pax
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Upcoming Departures */}
+            <div className="mt-6 pt-6 border-t">
+              <h4 className="font-medium text-gray-900 mb-3">
+                Upcoming Departures
+              </h4>
+              <div className="space-y-2">
+                {schedules
+                  .filter((s) => new Date(s.departureDate) >= today)
+                  .sort(
+                    (a, b) =>
+                      new Date(a.departureDate).getTime() -
+                      new Date(b.departureDate).getTime(),
+                  )
+                  .slice(0, 5)
+                  .map((schedule) => (
+                    <div
+                      key={schedule.id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${getStatusColor(schedule.status, schedule.available)}`}
+                        />
+                        <span className="text-gray-600 truncate max-w-[120px]">
+                          {schedule.package.name}
+                        </span>
+                      </div>
+                      <span className="text-gray-400">
+                        {new Date(schedule.departureDate).toLocaleDateString(
+                          "id-ID",
+                          {
+                            day: "numeric",
+                            month: "short",
+                          },
+                        )}
                       </span>
                     </div>
-                    <span className="text-gray-400">
-                      {new Date(schedule.departureDate).toLocaleDateString(
-                        "id-ID",
-                        {
-                          day: "numeric",
-                          month: "short",
-                        },
-                      )}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+              </div>
             </div>
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
