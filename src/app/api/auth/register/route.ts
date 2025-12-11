@@ -39,6 +39,21 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
     const tenantId = process.env.DEFAULT_TENANT_ID || "default";
 
+    // Ensure default tenant exists
+    let tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+    });
+
+    if (!tenant) {
+      tenant = await prisma.tenant.create({
+        data: {
+          id: tenantId,
+          name: "Default Travel Agency",
+          subdomain: "default",
+        },
+      });
+    }
+
     // Create user
     const user = await prisma.user.create({
       data: {
