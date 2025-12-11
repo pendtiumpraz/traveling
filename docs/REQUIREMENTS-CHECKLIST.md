@@ -22,17 +22,17 @@
 
 ## 2. CUSTOMER MANAGEMENT (CRM)
 
-| Feature                              | Status      | Notes                           |
-| ------------------------------------ | ----------- | ------------------------------- |
-| Customer CRUD                        | ✅ DONE     | API + UI with SidebarModal      |
-| Customer Types (Prospect/Client/VIP) | ✅ DONE     | Enum + badge display            |
-| Contact Info                         | ✅ DONE     | Phone, email, WhatsApp          |
-| Address Management                   | ✅ DONE     | Full address fields             |
-| Passport Data                        | ✅ DONE     | Number, expiry, issue place     |
-| Document Upload                      | 🔄 PARTIAL  | Google Drive integration ready  |
-| Customer History                     | ✅ DONE     | API /api/customers/[id]/history |
-| Lead Activities                      | ❌ NOT DONE | CRM activities tracking         |
-| Loyalty Points                       | ❌ NOT DONE | Points system                   |
+| Feature                              | Status     | Notes                           |
+| ------------------------------------ | ---------- | ------------------------------- |
+| Customer CRUD                        | ✅ DONE    | API + UI with SidebarModal      |
+| Customer Types (Prospect/Client/VIP) | ✅ DONE    | Enum + badge display            |
+| Contact Info                         | ✅ DONE    | Phone, email, WhatsApp          |
+| Address Management                   | ✅ DONE    | Full address fields             |
+| Passport Data                        | ✅ DONE    | Number, expiry, issue place     |
+| Document Upload                      | 🔄 PARTIAL | Google Drive integration ready  |
+| Customer History                     | ✅ DONE    | API /api/customers/[id]/history |
+| Lead Activities                      | ✅ DONE    | /api/lead-activities API        |
+| Loyalty Points                       | ✅ DONE    | /api/loyalty-points API         |
 
 ## 3. PACKAGE MANAGEMENT
 
@@ -98,15 +98,15 @@
 
 ## 8. MANIFEST MANAGEMENT
 
-| Feature                | Status      | Notes                      |
-| ---------------------- | ----------- | -------------------------- |
-| Manifest CRUD          | ✅ DONE     | API + UI                   |
-| Participant Management | ✅ DONE     | Add/remove participants    |
-| Manifest Code          | ✅ DONE     | Auto-generate              |
-| Link to Schedule       | ✅ DONE     | Foreign key                |
-| Manifest Status        | ✅ DONE     | Draft to Completed         |
-| Export to Excel        | ✅ DONE     | /api/manifests/[id]/export |
-| Print Manifest         | ❌ NOT DONE |                            |
+| Feature                | Status  | Notes                      |
+| ---------------------- | ------- | -------------------------- |
+| Manifest CRUD          | ✅ DONE | API + UI                   |
+| Participant Management | ✅ DONE | Add/remove participants    |
+| Manifest Code          | ✅ DONE | Auto-generate              |
+| Link to Schedule       | ✅ DONE | Foreign key                |
+| Manifest Status        | ✅ DONE | Draft to Completed         |
+| Export to Excel        | ✅ DONE | /api/manifests/[id]/export |
+| Print Manifest         | ✅ DONE | /api/manifests/[id]/print  |
 
 ## 9. OPERATIONS
 
@@ -142,40 +142,40 @@
 
 ## 11. INVENTORY (PRODUCTS)
 
-| Feature         | Status      | Notes           |
-| --------------- | ----------- | --------------- |
-| Product CRUD    | ✅ DONE     | API + UI        |
-| SKU Management  | ✅ DONE     | Unique code     |
-| Categories      | ✅ DONE     | Enum            |
-| Stock Tracking  | ✅ DONE     | Current stock   |
-| Min Stock Alert | ✅ DONE     | Field available |
-| Stock Movement  | ❌ NOT DONE | In/Out history  |
-| Distribution    | ❌ NOT DONE | Per jamaah      |
+| Feature         | Status     | Notes                  |
+| --------------- | ---------- | ---------------------- |
+| Product CRUD    | ✅ DONE    | API + UI               |
+| SKU Management  | ✅ DONE    | Unique code            |
+| Categories      | ✅ DONE    | Enum                   |
+| Stock Tracking  | ✅ DONE    | Current stock          |
+| Min Stock Alert | ✅ DONE    | Field available        |
+| Stock Movement  | 🔄 PARTIAL | Schema ready           |
+| Distribution    | ✅ DONE    | /api/distributions API |
 
 ## 12. MARKETING
 
-| Feature               | Status      | Notes                                              |
-| --------------------- | ----------- | -------------------------------------------------- |
-| Voucher CRUD          | ✅ DONE     | API + UI                                           |
-| Discount Types        | ✅ DONE     | Percentage/Fixed                                   |
-| Validity Period       | ✅ DONE     | Start/End date                                     |
-| Usage Quota           | ✅ DONE     | Quota tracking                                     |
-| **Promotion System**  | ✅ DONE     | 8 types (Early Bird, Last Minute, Flash Sale, etc) |
-| Promo Listing Page    | ✅ DONE     | /promo with search, filter, featured               |
-| Promo Detail Page     | ✅ DONE     | /promo/[slug] countdown, quota, packages           |
-| Landing Promo Section | ✅ DONE     | Shows showOnHome promotions                        |
-| Campaign Management   | ✅ DONE     | /api/campaigns API                                 |
-| Referral System       | ❌ NOT DONE |                                                    |
+| Feature               | Status  | Notes                                              |
+| --------------------- | ------- | -------------------------------------------------- |
+| Voucher CRUD          | ✅ DONE | API + UI                                           |
+| Discount Types        | ✅ DONE | Percentage/Fixed                                   |
+| Validity Period       | ✅ DONE | Start/End date                                     |
+| Usage Quota           | ✅ DONE | Quota tracking                                     |
+| **Promotion System**  | ✅ DONE | 8 types (Early Bird, Last Minute, Flash Sale, etc) |
+| Promo Listing Page    | ✅ DONE | /promo with search, filter, featured               |
+| Promo Detail Page     | ✅ DONE | /promo/[slug] countdown, quota, packages           |
+| Landing Promo Section | ✅ DONE | Shows showOnHome promotions                        |
+| Campaign Management   | ✅ DONE | /api/campaigns API                                 |
+| Referral System       | ✅ DONE | /api/referrals API                                 |
 
 ## 13. AGENTS (SALES PARTNERS)
 
-| Feature           | Status      | Notes              |
-| ----------------- | ----------- | ------------------ |
-| Agent CRUD        | ✅ DONE     | API + UI           |
-| Tier System       | ✅ DONE     | Bronze to Platinum |
-| Commission Rate   | ✅ DONE     | Per agent          |
-| Agent Bookings    | 🔄 PARTIAL  | Link available     |
-| Commission Payout | ❌ NOT DONE |                    |
+| Feature           | Status     | Notes                       |
+| ----------------- | ---------- | --------------------------- |
+| Agent CRUD        | ✅ DONE    | API + UI                    |
+| Tier System       | ✅ DONE    | Bronze to Platinum          |
+| Commission Rate   | ✅ DONE    | Per agent                   |
+| Agent Bookings    | 🔄 PARTIAL | Link available              |
+| Commission Payout | ✅ DONE    | /api/commission-payouts API |
 
 ## 14. HRIS (EMPLOYEES)
 
@@ -191,15 +191,16 @@
 
 ## 15. SUPPORT (TICKETS)
 
-| Feature           | Status      | Notes               |
-| ----------------- | ----------- | ------------------- |
-| Ticket UI         | ✅ DONE     | Page with mock data |
-| Ticket Categories | ✅ DONE     | Enum                |
-| Priority Levels   | ✅ DONE     | Enum                |
-| Ticket Status     | ✅ DONE     | Open to Closed      |
-| Message Thread    | 🔄 PARTIAL  | UI ready            |
-| Assignment        | 🔄 PARTIAL  | Field available     |
-| SLA Tracking      | ❌ NOT DONE |                     |
+| Feature           | Status      | Notes                      |
+| ----------------- | ----------- | -------------------------- |
+| Ticket UI         | ✅ DONE     | Page with mock data        |
+| Ticket API        | ✅ DONE     | /api/tickets CRUD          |
+| Ticket Categories | ✅ DONE     | Enum                       |
+| Priority Levels   | ✅ DONE     | Enum                       |
+| Ticket Status     | ✅ DONE     | Open to Closed             |
+| Message Thread    | ✅ DONE     | /api/tickets/[id]/messages |
+| Assignment        | ✅ DONE     | assignedTo field           |
+| SLA Tracking      | ❌ NOT DONE |                            |
 
 ## 16. IoT TRACKING
 
@@ -320,20 +321,20 @@
 | Category        | Done | Partial | Not Done | Total |
 | --------------- | ---- | ------- | -------- | ----- |
 | Auth & Users    | 5    | 1       | 1        | 7     |
-| CRM             | 7    | 1       | 2        | 10    |
+| CRM             | 9    | 1       | 0        | 10    |
 | Packages        | 5    | 1       | 2        | 8     |
 | Schedules       | 7    | 0       | 0        | 7     |
 | Bookings        | 10   | 1       | 0        | 11    |
 | Payments        | 5    | 0       | 2        | 7     |
 | Invoices        | 4    | 0       | 1        | 5     |
-| Manifests       | 6    | 0       | 1        | 7     |
+| Manifests       | 7    | 0       | 0        | 7     |
 | Operations      | 7    | 2       | 1        | 10    |
 | Finance         | 6    | 0       | 0        | 6     |
-| Inventory       | 5    | 0       | 2        | 7     |
-| Marketing       | 5    | 0       | 2        | 7     |
-| Agents          | 3    | 1       | 1        | 5     |
+| Inventory       | 5    | 1       | 1        | 7     |
+| Marketing       | 6    | 0       | 1        | 7     |
+| Agents          | 4    | 1       | 0        | 5     |
 | HRIS            | 7    | 0       | 0        | 7     |
-| Support         | 4    | 2       | 1        | 7     |
+| Support         | 7    | 0       | 1        | 8     |
 | IoT Tracking    | 6    | 0       | 2        | 8     |
 | Reports         | 6    | 1       | 0        | 7     |
 | Settings        | 2    | 1       | 3        | 6     |
@@ -345,9 +346,9 @@
 
 ### Overall Progress
 
-- **DONE**: ~85% (145+ items)
-- **PARTIAL**: ~5% (10 items)
-- **NOT DONE**: ~10% (20 items - mostly external integrations)
+- **DONE**: ~90% (160+ items)
+- **PARTIAL**: ~4% (8 items)
+- **NOT DONE**: ~6% (15 items - mostly external integrations)
 
 ### Remaining Items (Require External Services)
 
@@ -357,3 +358,5 @@
 4. Google Maps Integration - needs API key
 5. WebSocket for Real-time Updates - needs infrastructure
 6. Password Reset - needs email service
+7. SLA Tracking - needs business rules
+8. Package Images - needs file upload UI
