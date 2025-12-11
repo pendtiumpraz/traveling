@@ -1,108 +1,206 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { DataTable, Column, Badge, Button, Card } from "@/components/ui";
-import { Eye, Edit, Plane, Clock, Users, MapPin } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  DataTable,
+  Column,
+  Badge,
+  Button,
+  Card,
+  SidebarModal,
+  Input,
+  Select,
+} from "@/components/ui";
+import { Plane, Plus, Edit, Trash2, Calendar, Clock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import Link from "next/link";
+import { useToast } from "@/components/ui/toast";
 
 interface Flight {
   id: string;
   flightNumber: string;
-  airline: {
-    name: string;
-    code: string;
-  };
-  origin: string;
-  destination: string;
+  originCity: string;
+  originAirport: string;
+  destCity: string;
+  destAirport: string;
+  date: string;
   departureTime: string;
   arrivalTime: string;
-  status: string;
-  manifest: {
+  airline: {
+    id: string;
     code: string;
-    schedule: { package: { name: string } };
+    name: string;
+    logo: string | null;
   };
-  _count: { passengers: number };
+  _count: {
+    outboundManifests: number;
+    returnManifests: number;
+  };
 }
 
-const statusColors: Record<
-  string,
-  "secondary" | "warning" | "success" | "destructive"
-> = {
-  SCHEDULED: "secondary",
-  BOARDING: "warning",
-  DEPARTED: "success",
-  ARRIVED: "success",
-  DELAYED: "destructive",
-  CANCELLED: "destructive",
+interface Airline {
+  id: string;
+  code: string;
+  name: string;
+}
+
+const initialFormData = {
+  airlineId: "",
+  flightNumber: "",
+  originCity: "",
+  originAirport: "",
+  destCity: "",
+  destAirport: "",
+  date: "",
+  departureTime: "",
+  arrivalTime: "",
 };
 
 export default function FlightsPage() {
+  const toast = useToast();
   const [flights, setFlights] = useState<Flight[]>([]);
+  const [airlines, setAirlines] = useState<Airline[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+
+  // Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingFlight, setEditingFlight] = useState<Flight | null>(null);
+  const [formData, setFormData] = useState(initialFormData);
+  const [saving, setSaving] = useState(false);
 
   const fetchFlights = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Mock data for now
-      await new Promise((r) => setTimeout(r, 500));
-      setFlights([
-        {
-          id: "1",
-          flightNumber: "SV-123",
-          airline: { name: "Saudia", code: "SV" },
-          origin: "CGK",
-          destination: "JED",
-          departureTime: "2024-03-15T08:00:00",
-          arrivalTime: "2024-03-15T14:30:00",
-          status: "SCHEDULED",
-          manifest: {
-            code: "MNF-2024-001",
-            schedule: { package: { name: "Umrah Ramadhan 2024" } },
-          },
-          _count: { passengers: 45 },
-        },
-        {
-          id: "2",
-          flightNumber: "GA-988",
-          airline: { name: "Garuda Indonesia", code: "GA" },
-          origin: "JED",
-          destination: "CGK",
-          departureTime: "2024-03-25T22:00:00",
-          arrivalTime: "2024-03-26T12:30:00",
-          status: "SCHEDULED",
-          manifest: {
-            code: "MNF-2024-001",
-            schedule: { package: { name: "Umrah Ramadhan 2024" } },
-          },
-          _count: { passengers: 45 },
-        },
-      ]);
-      setTotal(2);
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
+        ...(search && { search }),
+      });
+
+      const res = await fetch(`/api/flights?${params}`);
+      const data = await res.json();
+
+      if (data.success) {
+        setFlights(data.data || []);
+        setTotal(data.pagination?.total || 0);
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Failed to fetch flights:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize]);
+  }, [page, pageSize, search]);
+
+  const fetchAirlines = async () => {
+    try {
+      const res = await fetch("/api/airlines");
+      const data = await res.json();
+      if (data.success) {
+        setAirlines(data.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch airlines:", error);
+    }
+  };
 
   useEffect(() => {
     fetchFlights();
+    fetchAirlines();
   }, [fetchFlights]);
+
+  const handleAdd = () => {
+    setEditingFlight(null);
+    setFormData(initialFormData);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (flight: Flight) => {
+    setEditingFlight(flight);
+    setFormData({
+      airlineId: flight.airline.id,
+      flightNumber: flight.flightNumber,
+      originCity: flight.originCity,
+      originAirport: flight.originAirport,
+      destCity: flight.destCity,
+      destAirport: flight.destAirport,
+      date: flight.date.split("T")[0],
+      departureTime: flight.departureTime,
+      arrivalTime: flight.arrivalTime,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (flight: Flight) => {
+    if (!confirm(`Delete flight ${flight.flightNumber}?`)) return;
+
+    try {
+      const res = await fetch(`/api/flights?id=${flight.id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        toast.success("Flight deleted successfully");
+        fetchFlights();
+      }
+    } catch (error) {
+      console.error("Failed to delete flight:", error);
+      toast.error("Failed to delete flight");
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const method = editingFlight ? "PUT" : "POST";
+      const body = editingFlight
+        ? { id: editingFlight.id, ...formData }
+        : formData;
+
+      const res = await fetch("/api/flights", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success(editingFlight ? "Flight updated" : "Flight created");
+        setIsModalOpen(false);
+        fetchFlights();
+      } else {
+        toast.error(data.error || "Failed to save flight");
+      }
+    } catch (error) {
+      console.error("Failed to save flight:", error);
+      toast.error("Failed to save flight");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const columns: Column<Flight>[] = [
     {
-      key: "flight",
+      key: "flightNumber",
       header: "Flight",
       render: (row) => (
-        <div>
-          <p className="font-mono text-lg font-bold text-primary">
-            {row.flightNumber}
-          </p>
-          <p className="text-xs text-gray-500">{row.airline.name}</p>
+        <div className="flex items-center gap-2">
+          {row.airline.logo ? (
+            <img
+              src={row.airline.logo}
+              alt={row.airline.name}
+              className="h-6 w-6 object-contain"
+            />
+          ) : (
+            <Plane className="h-5 w-5 text-gray-400" />
+          )}
+          <div>
+            <p className="font-medium">{row.flightNumber}</p>
+            <p className="text-xs text-gray-500">{row.airline.name}</p>
+          </div>
         </div>
       ),
     },
@@ -111,77 +209,73 @@ export default function FlightsPage() {
       header: "Route",
       render: (row) => (
         <div className="flex items-center gap-2">
-          <span className="font-mono font-medium">{row.origin}</span>
-          <Plane className="h-4 w-4 text-gray-400" />
-          <span className="font-mono font-medium">{row.destination}</span>
+          <div className="text-right">
+            <p className="font-medium">{row.originAirport}</p>
+            <p className="text-xs text-gray-500">{row.originCity}</p>
+          </div>
+          <span className="text-gray-400">→</span>
+          <div>
+            <p className="font-medium">{row.destAirport}</p>
+            <p className="text-xs text-gray-500">{row.destCity}</p>
+          </div>
         </div>
       ),
     },
     {
-      key: "schedule",
-      header: "Schedule",
-      render: (row) => (
-        <div className="text-sm">
-          <p className="font-medium">
-            {formatDate(row.departureTime, {
-              day: "numeric",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-          <p className="text-gray-500">
-            Arr:{" "}
-            {formatDate(row.arrivalTime, {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-        </div>
-      ),
-    },
-    {
-      key: "manifest",
-      header: "Manifest",
+      key: "date",
+      header: "Date",
       render: (row) => (
         <div>
-          <p className="font-mono text-xs">{row.manifest.code}</p>
-          <p className="text-xs text-gray-500">
-            {row.manifest.schedule.package.name}
+          <p className="font-medium">
+            {formatDate(row.date, {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}
           </p>
         </div>
       ),
     },
     {
-      key: "passengers",
-      header: "PAX",
-      width: "80px",
+      key: "time",
+      header: "Time",
       render: (row) => (
-        <div className="flex items-center gap-1">
-          <Users className="h-4 w-4 text-gray-400" />
-          <span className="font-medium">{row._count.passengers}</span>
+        <div className="flex items-center gap-1 text-sm">
+          <Clock className="h-4 w-4 text-gray-400" />
+          <span>{row.departureTime}</span>
+          <span className="text-gray-400">-</span>
+          <span>{row.arrivalTime}</span>
         </div>
       ),
     },
     {
-      key: "status",
-      header: "Status",
-      width: "110px",
-      render: (row) => (
-        <Badge variant={statusColors[row.status]}>{row.status}</Badge>
-      ),
+      key: "manifests",
+      header: "Manifests",
+      render: (row) => {
+        const total = row._count.outboundManifests + row._count.returnManifests;
+        return (
+          <Badge variant={total > 0 ? "default" : "secondary"}>
+            {total} manifest
+          </Badge>
+        );
+      },
     },
     {
       key: "actions",
       header: "",
-      width: "80px",
-      render: () => (
+      width: "100px",
+      render: (row) => (
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon">
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => handleEdit(row)}>
             <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleDelete(row)}
+            className="text-red-500 hover:text-red-600"
+          >
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       ),
@@ -190,66 +284,19 @@ export default function FlightsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Flight Management
-          </h1>
-          <p className="text-gray-500">
-            Manage flight schedules and passengers
-          </p>
-        </div>
-        <Link href="/dashboard/operations">
-          <Button variant="outline">Back to Operations</Button>
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-blue-100 p-2">
-              <Plane className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{flights.length}</p>
-              <p className="text-sm text-gray-500">Total Flights</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-green-100 p-2">
-              <Users className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">
-                {flights.reduce((s, f) => s + f._count.passengers, 0)}
-              </p>
-              <p className="text-sm text-gray-500">Total Passengers</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-amber-100 p-2">
-              <Clock className="h-5 w-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">
-                {flights.filter((f) => f.status === "SCHEDULED").length}
-              </p>
-              <p className="text-sm text-gray-500">Upcoming</p>
-            </div>
-          </div>
-        </Card>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Flight Management</h1>
+        <p className="text-gray-500">Manage flight schedules for manifests</p>
       </div>
 
       <DataTable
         columns={columns}
         data={flights}
         isLoading={isLoading}
+        searchPlaceholder="Search flights..."
+        onSearch={setSearch}
         addLabel="Add Flight"
-        onAdd={() => {}}
+        onAdd={handleAdd}
         pagination={{
           page,
           pageSize,
@@ -259,6 +306,115 @@ export default function FlightsPage() {
         }}
         emptyMessage="No flights found"
       />
+
+      <SidebarModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingFlight ? "Edit Flight" : "Add Flight"}
+      >
+        <div className="space-y-4">
+          <Select
+            label="Airline *"
+            value={formData.airlineId}
+            onChange={(e) =>
+              setFormData({ ...formData, airlineId: e.target.value })
+            }
+            options={[
+              { value: "", label: "Select airline" },
+              ...airlines.map((a) => ({
+                value: a.id,
+                label: `${a.code} - ${a.name}`,
+              })),
+            ]}
+          />
+
+          <Input
+            label="Flight Number *"
+            value={formData.flightNumber}
+            onChange={(e) =>
+              setFormData({ ...formData, flightNumber: e.target.value })
+            }
+            placeholder="GA 123"
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Origin City *"
+              value={formData.originCity}
+              onChange={(e) =>
+                setFormData({ ...formData, originCity: e.target.value })
+              }
+              placeholder="Jakarta"
+            />
+            <Input
+              label="Origin Airport *"
+              value={formData.originAirport}
+              onChange={(e) =>
+                setFormData({ ...formData, originAirport: e.target.value })
+              }
+              placeholder="CGK"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Destination City *"
+              value={formData.destCity}
+              onChange={(e) =>
+                setFormData({ ...formData, destCity: e.target.value })
+              }
+              placeholder="Jeddah"
+            />
+            <Input
+              label="Destination Airport *"
+              value={formData.destAirport}
+              onChange={(e) =>
+                setFormData({ ...formData, destAirport: e.target.value })
+              }
+              placeholder="JED"
+            />
+          </div>
+
+          <Input
+            label="Date *"
+            type="date"
+            value={formData.date}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Departure Time *"
+              type="time"
+              value={formData.departureTime}
+              onChange={(e) =>
+                setFormData({ ...formData, departureTime: e.target.value })
+              }
+            />
+            <Input
+              label="Arrival Time *"
+              type="time"
+              value={formData.arrivalTime}
+              onChange={(e) =>
+                setFormData({ ...formData, arrivalTime: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button className="flex-1" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </div>
+      </SidebarModal>
     </div>
   );
 }

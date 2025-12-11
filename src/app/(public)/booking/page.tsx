@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Plane,
   Calendar,
   Users,
   CreditCard,
@@ -49,7 +48,7 @@ const steps = [
   { id: 3, name: "Konfirmasi", icon: CheckCircle },
 ];
 
-export default function PublicBookingPage() {
+function BookingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
@@ -808,5 +807,21 @@ export default function PublicBookingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function BookingLoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+    </div>
+  );
+}
+
+export default function PublicBookingPage() {
+  return (
+    <Suspense fallback={<BookingLoadingFallback />}>
+      <BookingPageContent />
+    </Suspense>
   );
 }

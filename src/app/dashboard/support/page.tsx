@@ -8,7 +8,6 @@ import {
   Button,
   Card,
   SidebarModal,
-  Input,
 } from "@/components/ui";
 import {
   Eye,
@@ -17,24 +16,44 @@ import {
   CheckCircle,
   AlertCircle,
   User,
+  Plus,
+  Loader2,
+  Send,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 interface Ticket {
   id: string;
-  ticketNumber: string;
+  ticketNo: string;
   subject: string;
+  description: string;
   category: string;
   priority: string;
   status: string;
+  assignedTo: string | null;
   createdAt: string;
   updatedAt: string;
   customer: {
+    id: string;
     fullName: string;
-    email: string;
+    phone: string;
+    email: string | null;
   };
-  assignee: { name: string } | null;
-  _count: { messages: number };
+  comments: Array<{
+    id: string;
+    comment: string;
+    userId: string;
+    isInternal: boolean;
+    createdAt: string;
+  }>;
+}
+
+interface TicketMessage {
+  id: string;
+  comment: string;
+  userId: string;
+  isInternal: boolean;
+  createdAt: string;
 }
 
 const priorityColors: Record<string, "secondary" | "warning" | "destructive"> =
@@ -64,59 +83,32 @@ export default function SupportPage() {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
 
-  // Modal
+  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [messages, setMessages] = useState<TicketMessage[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(false);
 
   const fetchTickets = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Mock data
-      await new Promise((r) => setTimeout(r, 500));
-      setTickets([
-        {
-          id: "1",
-          ticketNumber: "TKT-2024-001",
-          subject: "Visa application status inquiry",
-          category: "VISA",
-          priority: "HIGH",
-          status: "OPEN",
-          createdAt: "2024-03-10T10:00:00",
-          updatedAt: "2024-03-10T14:30:00",
-          customer: { fullName: "Ahmad Fauzi", email: "ahmad@email.com" },
-          assignee: { name: "Support Agent 1" },
-          _count: { messages: 3 },
-        },
-        {
-          id: "2",
-          ticketNumber: "TKT-2024-002",
-          subject: "Request for schedule change",
-          category: "BOOKING",
-          priority: "MEDIUM",
-          status: "IN_PROGRESS",
-          createdAt: "2024-03-09T08:00:00",
-          updatedAt: "2024-03-10T09:00:00",
-          customer: { fullName: "Budi Santoso", email: "budi@email.com" },
-          assignee: { name: "Support Agent 2" },
-          _count: { messages: 5 },
-        },
-        {
-          id: "3",
-          ticketNumber: "TKT-2024-003",
-          subject: "Payment confirmation not received",
-          category: "PAYMENT",
-          priority: "URGENT",
-          status: "OPEN",
-          createdAt: "2024-03-10T15:00:00",
-          updatedAt: "2024-03-10T15:00:00",
-          customer: { fullName: "Siti Rahayu", email: "siti@email.com" },
-          assignee: null,
-          _count: { messages: 1 },
-        },
-      ]);
-      setTotal(3);
+      const params = new URLSearchParams({
+        page: String(page + 1),
+        limit: String(pageSize),
+        ...(search && { search }),
+      });
+
+      const res = await fetch(`/api/tickets?${params}`);
+      const data = await res.json();
+
+      if (data.success) {
+        setTickets(data.data || []);
+        setTotal(data.pagination?.total || 0);
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Failed to fetch tickets:", error);
     } finally {
       setIsLoading(false);
     }
@@ -126,22 +118,82 @@ export default function SupportPage() {
     fetchTickets();
   }, [fetchTickets]);
 
-  const openTickets = tickets.filter((t) => t.status === "OPEN").length;
-  const inProgress = tickets.filter((t) => t.status === "IN_PROGRESS").length;
+  const fetchMessages = async (ticketId: string) => {
+    setLoadingMessages(true);
+    try {
+      const res = await fetch(`/api/tickets/${ticketId}/messages`);
+      const data = await res.json();
+      if (data.success) {
+        setMessages(data.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch messages:", error);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
 
   const handleView = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setIsModalOpen(true);
+    fetchMessages(ticket.id);
   };
+
+  const handleSendMessage = async () => {
+    if (!selectedTicket || !newMessage.trim()) return;
+
+    setSendingMessage(true);
+    try {
+      const res = await fetch(`/api/tickets/${selectedTicket.id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comment: newMessage, isInternal: false }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setMessages((prev) => [...prev, data.data]);
+        setNewMessage("");
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleStatusChange = async (ticketId: string, newStatus: string) => {
+    try {
+      const res = await fetch("/api/tickets", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: ticketId, status: newStatus }),
+      });
+
+      if (res.ok) {
+        fetchTickets();
+        if (selectedTicket?.id === ticketId) {
+          setSelectedTicket((prev) =>
+            prev ? { ...prev, status: newStatus } : null,
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    }
+  };
+
+  const openTickets = tickets.filter((t) => t.status === "OPEN").length;
+  const inProgress = tickets.filter((t) => t.status === "IN_PROGRESS").length;
 
   const columns: Column<Ticket>[] = [
     {
-      key: "ticketNumber",
+      key: "ticketNo",
       header: "Ticket",
       width: "130px",
       render: (row) => (
         <span className="font-mono text-sm font-medium text-primary">
-          {row.ticketNumber}
+          {row.ticketNo}
         </span>
       ),
     },
@@ -161,7 +213,7 @@ export default function SupportPage() {
       render: (row) => (
         <div>
           <p className="text-sm font-medium">{row.customer.fullName}</p>
-          <p className="text-xs text-gray-500">{row.customer.email}</p>
+          <p className="text-xs text-gray-500">{row.customer.phone}</p>
         </div>
       ),
     },
@@ -184,11 +236,11 @@ export default function SupportPage() {
       ),
     },
     {
-      key: "assignee",
+      key: "assignedTo",
       header: "Assignee",
       width: "140px",
       render: (row) =>
-        row.assignee?.name || <span className="text-gray-400">Unassigned</span>,
+        row.assignedTo || <span className="text-gray-400">Unassigned</span>,
     },
     {
       key: "updated",
@@ -261,10 +313,8 @@ export default function SupportPage() {
               <MessageSquare className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold">
-                {tickets.reduce((s, t) => s + t._count.messages, 0)}
-              </p>
-              <p className="text-sm text-gray-500">Messages</p>
+              <p className="text-2xl font-bold">{total}</p>
+              <p className="text-sm text-gray-500">Total Tickets</p>
             </div>
           </div>
         </Card>
@@ -276,8 +326,6 @@ export default function SupportPage() {
         isLoading={isLoading}
         searchPlaceholder="Search tickets..."
         onSearch={setSearch}
-        addLabel="Create Ticket"
-        onAdd={() => {}}
         pagination={{
           page,
           pageSize,
@@ -291,7 +339,7 @@ export default function SupportPage() {
       <SidebarModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={`Ticket ${selectedTicket?.ticketNumber}`}
+        title={`Ticket ${selectedTicket?.ticketNo}`}
         size="lg"
       >
         {selectedTicket && (
@@ -315,6 +363,12 @@ export default function SupportPage() {
               </div>
             </div>
 
+            <div className="rounded-lg bg-gray-50 p-4">
+              <p className="text-sm text-gray-700">
+                {selectedTicket.description}
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4">
               <div>
                 <p className="text-sm text-gray-500">Customer</p>
@@ -322,13 +376,13 @@ export default function SupportPage() {
                   {selectedTicket.customer.fullName}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {selectedTicket.customer.email}
+                  {selectedTicket.customer.phone}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Assignee</p>
                 <p className="font-medium">
-                  {selectedTicket.assignee?.name || "Unassigned"}
+                  {selectedTicket.assignedTo || "Unassigned"}
                 </p>
               </div>
               <div>
@@ -345,41 +399,87 @@ export default function SupportPage() {
               </div>
             </div>
 
-            <div>
-              <h4 className="mb-3 font-semibold">
-                Messages ({selectedTicket._count.messages})
-              </h4>
-              <div className="space-y-3">
-                <div className="rounded-lg border p-3">
-                  <div className="mb-2 flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
-                      <User className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">
-                        {selectedTicket.customer.fullName}
-                      </p>
-                      <p className="text-xs text-gray-500">Customer</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-700">
-                    Hello, I would like to inquire about the status of my visa
-                    application. It has been 5 days since submission.
-                  </p>
-                </div>
-              </div>
+            {/* Status Actions */}
+            <div className="flex gap-2">
+              <p className="text-sm text-gray-500 mr-2">Change Status:</p>
+              {["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => handleStatusChange(selectedTicket.id, status)}
+                  disabled={selectedTicket.status === status}
+                  className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+                    selectedTicket.status === status
+                      ? "bg-primary text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {status.replace("_", " ")}
+                </button>
+              ))}
             </div>
 
+            {/* Messages */}
+            <div>
+              <h4 className="mb-3 font-semibold">Messages</h4>
+              {loadingMessages ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                </div>
+              ) : messages.length > 0 ? (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`rounded-lg border p-3 ${
+                        msg.isInternal ? "bg-amber-50 border-amber-200" : ""
+                      }`}
+                    >
+                      <div className="mb-2 flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+                          <User className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">
+                            {msg.isInternal ? "Internal Note" : "Reply"}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatDate(msg.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-700">{msg.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  No messages yet
+                </p>
+              )}
+            </div>
+
+            {/* Reply Form */}
             <div>
               <label className="mb-2 block text-sm font-medium">Reply</label>
               <textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                 rows={3}
                 placeholder="Type your reply..."
               />
-              <div className="mt-2 flex justify-end gap-2">
-                <Button variant="outline">Save Draft</Button>
-                <Button>Send Reply</Button>
+              <div className="mt-2 flex justify-end">
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={sendingMessage || !newMessage.trim()}
+                >
+                  {sendingMessage ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="mr-2 h-4 w-4" />
+                  )}
+                  Send Reply
+                </Button>
               </div>
             </div>
           </div>

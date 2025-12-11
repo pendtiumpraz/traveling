@@ -22,6 +22,7 @@ import {
   Megaphone,
   Boxes,
   Headphones,
+  Sparkles,
 } from "lucide-react";
 
 // Role-based menu visibility (11 roles from requirements)
@@ -42,6 +43,7 @@ const ROLE_MENUS: Record<string, string[]> = {
     "hris",
     "support",
     "reports",
+    "ai-assistant",
     "settings",
   ],
   ADMIN: [
@@ -59,15 +61,22 @@ const ROLE_MENUS: Record<string, string[]> = {
     "hris",
     "support",
     "reports",
+    "ai-assistant",
     "settings",
   ],
 
   // Department-specific
-  FINANCE: ["dashboard", "finance", "reports"],
-  OPERASIONAL: ["dashboard", "operations", "schedules", "tracking"],
-  MARKETING: ["dashboard", "customers", "marketing", "reports"],
-  HRD: ["dashboard", "hris"],
-  INVENTORY: ["dashboard", "inventory"],
+  FINANCE: ["dashboard", "finance", "reports", "ai-assistant"],
+  OPERASIONAL: [
+    "dashboard",
+    "operations",
+    "schedules",
+    "tracking",
+    "ai-assistant",
+  ],
+  MARKETING: ["dashboard", "customers", "marketing", "reports", "ai-assistant"],
+  HRD: ["dashboard", "hris", "ai-assistant"],
+  INVENTORY: ["dashboard", "inventory", "ai-assistant"],
 
   // Field roles
   TOUR_LEADER: ["dashboard", "operations", "tracking"],
@@ -81,9 +90,10 @@ const ROLE_MENUS: Record<string, string[]> = {
     "packages",
     "schedules",
     "reports",
+    "ai-assistant",
   ],
 
-  // Customer uses portal, not dashboard
+  // Customer uses portal, not dashboard (no AI access)
   CUSTOMER: [],
 };
 
@@ -166,6 +176,12 @@ const menuItems = [
     title: "Reports",
     href: "/dashboard/reports",
     icon: BarChart3,
+  },
+  {
+    key: "ai-assistant",
+    title: "AI Assistant",
+    href: "/dashboard/ai-assistant",
+    icon: Sparkles,
   },
   {
     key: "settings",
