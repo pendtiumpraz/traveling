@@ -9,7 +9,12 @@ import {
   SidebarModal,
 } from "@/components/ui";
 import { CustomerForm } from "./customer-form";
-import { Eye, Edit, Trash2, Phone, Mail } from "lucide-react";
+import {
+  DataTableToolbar,
+  useTableSelection,
+  SelectCheckbox,
+} from "@/components/ui/data-table-toolbar";
+import { Eye, Edit, Trash2, Phone, Mail, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 interface Customer {
@@ -47,6 +52,18 @@ export default function CustomersPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+
+  // Selection state
+  const {
+    selectedIds,
+    toggleItem,
+    selectAll,
+    clearSelection,
+    toggleAll,
+    isSelected,
+    isAllSelected,
+    isSomeSelected,
+  } = useTableSelection(customers);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -126,6 +143,23 @@ export default function CustomersPage() {
   };
 
   const columns: Column<Customer>[] = [
+    {
+      key: "select",
+      header: (
+        <SelectCheckbox
+          checked={isAllSelected}
+          onChange={toggleAll}
+          indeterminate={isSomeSelected}
+        />
+      ),
+      width: "50px",
+      render: (row) => (
+        <SelectCheckbox
+          checked={isSelected(row.id)}
+          onChange={() => toggleItem(row.id)}
+        />
+      ),
+    },
     {
       key: "code",
       header: "Code",
@@ -239,20 +273,36 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-        <p className="text-gray-500">Manage your customers and prospects</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
+          <p className="text-gray-500">Manage your customers and prospects</p>
+        </div>
+        <Button onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Customer
+        </Button>
       </div>
+
+      {/* Toolbar with bulk actions & import */}
+      <DataTableToolbar
+        selectedIds={selectedIds}
+        onSelectAll={selectAll}
+        onClearSelection={clearSelection}
+        totalItems={total}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search by name, phone, email..."
+        modelName="customer"
+        onBulkDelete={fetchCustomers}
+        onImportSuccess={fetchCustomers}
+      />
 
       {/* Data Table */}
       <DataTable
         columns={columns}
         data={customers}
         isLoading={isLoading}
-        searchPlaceholder="Search by name, phone, email..."
-        onSearch={setSearch}
-        onAdd={handleAdd}
-        addLabel="Add Customer"
         onRowClick={handleView}
         pagination={{
           page,

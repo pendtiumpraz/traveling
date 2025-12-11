@@ -16,6 +16,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
+    "db:seed:full": "npx tsx prisma/seed-comprehensive.ts",
     "db:studio": "prisma studio"
   },
   "lint-staged": {
