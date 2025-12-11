@@ -247,20 +247,20 @@
 
 ## 19.1 CUSTOMER PORTAL (/portal)
 
-| Feature            | Status      | Notes                   |
-| ------------------ | ----------- | ----------------------- |
-| Portal Layout      | ❌ NOT DONE | Separate from dashboard |
-| Browse Packages    | ❌ NOT DONE | View available packages |
-| View Schedules     | ❌ NOT DONE | See departure dates     |
-| Make Booking       | ❌ NOT DONE | Online booking flow     |
-| My Bookings        | ❌ NOT DONE | View own bookings       |
-| Payment History    | ❌ NOT DONE | View payment status     |
-| Upload Documents   | ❌ NOT DONE | Passport, KTP, etc      |
-| E-Ticket/E-Voucher | ❌ NOT DONE | Download tickets        |
-| Trip Itinerary     | ❌ NOT DONE | Day-by-day schedule     |
-| Live Tracking      | ❌ NOT DONE | Track own location      |
-| Support Tickets    | ❌ NOT DONE | Create/view tickets     |
-| Profile Settings   | ❌ NOT DONE | Update profile          |
+| Feature            | Status  | Notes                                            |
+| ------------------ | ------- | ------------------------------------------------ |
+| Portal Layout      | ✅ DONE | Header + Sidebar + Main                          |
+| Browse Packages    | ✅ DONE | Search + Filter                                  |
+| View Schedules     | ✅ DONE | Pricing grid                                     |
+| Make Booking       | ✅ DONE | 3-step wizard                                    |
+| My Bookings        | ✅ DONE | Status badges                                    |
+| Payment History    | ✅ DONE | Bank accounts display                            |
+| Upload Documents   | ✅ DONE | Checklist + status                               |
+| E-Ticket/E-Voucher | ✅ DONE | Flight + Hotel vouchers                          |
+| Trip Itinerary     | ✅ DONE | Day-by-day timeline                              |
+| Live Tracking      | ✅ DONE | GPS + health data                                |
+| Support Tickets    | ✅ DONE | Chat + create ticket                             |
+| Profile Settings   | ✅ DONE | 5 tabs (data, alamat, paspor, darurat, keamanan) |
 
 ## 20. INTEGRATIONS
 
