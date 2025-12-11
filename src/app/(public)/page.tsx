@@ -23,6 +23,22 @@ import {
   Zap,
   Clock,
   Percent,
+  // System Features Icons
+  LayoutDashboard,
+  Package,
+  CreditCard,
+  FileText,
+  Boxes,
+  UserCog,
+  Handshake,
+  Watch,
+  Globe,
+  BarChart3,
+  Smartphone,
+  Settings,
+  Lock,
+  Layers,
+  Building2,
 } from "lucide-react";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -134,6 +150,12 @@ export default function LandingPage() {
               className="text-gray-600 hover:text-emerald-600 font-medium"
             >
               Promo
+            </Link>
+            <Link
+              href="#system-features"
+              className="text-gray-600 hover:text-emerald-600 font-medium"
+            >
+              Fitur Sistem
             </Link>
             <Link
               href="#features"
@@ -277,6 +299,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* System Features Section */}
+      <SystemFeaturesSection />
 
       {/* Packages Section */}
       <section id="packages" className="bg-gray-50 py-24 px-4">
@@ -713,6 +738,325 @@ function PromoSection() {
             Lihat Semua Promo
             <ArrowRight className="h-5 w-5" />
           </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// System Features Data
+const systemFeatures = [
+  {
+    category: "Manajemen Bisnis",
+    icon: Building2,
+    color: "from-blue-500 to-blue-600",
+    features: [
+      {
+        icon: Layers,
+        title: "Multi Jenis Perjalanan",
+        description:
+          "Support Umrah, Haji, Outbound, Inbound, Domestic, MICE, dan Cruise dalam satu sistem terpadu.",
+      },
+      {
+        icon: Package,
+        title: "Manajemen Paket",
+        description:
+          "Kelola paket perjalanan lengkap dengan itinerary, hotel, maskapai, dan harga seasonal.",
+      },
+      {
+        icon: Calendar,
+        title: "Penjadwalan Keberangkatan",
+        description:
+          "Atur jadwal keberangkatan dengan kuota, harga, dan status otomatis.",
+      },
+    ],
+  },
+  {
+    category: "Operasional",
+    icon: Settings,
+    color: "from-purple-500 to-purple-600",
+    features: [
+      {
+        icon: FileText,
+        title: "Manifest & Rooming",
+        description:
+          "Kelola data jamaah, pembagian kamar, dan manifest keberangkatan secara otomatis.",
+      },
+      {
+        icon: Plane,
+        title: "Manajemen Penerbangan",
+        description:
+          "Atur jadwal penerbangan, seat assignment, dan integrasi dengan maskapai.",
+      },
+      {
+        icon: Hotel,
+        title: "Manajemen Hotel",
+        description:
+          "Database hotel dengan rating, tipe kamar, dan jarak ke Masjidil Haram/Nabawi.",
+      },
+    ],
+  },
+  {
+    category: "Keuangan",
+    icon: CreditCard,
+    color: "from-green-500 to-green-600",
+    features: [
+      {
+        icon: CreditCard,
+        title: "Pembayaran & Cicilan",
+        description:
+          "Terima pembayaran DP, cicilan, dan pelunasan dengan verifikasi otomatis.",
+      },
+      {
+        icon: FileText,
+        title: "Invoice Otomatis",
+        description:
+          "Generate invoice dan kwitansi secara otomatis dengan nomor urut.",
+      },
+      {
+        icon: BarChart3,
+        title: "Laporan Keuangan",
+        description:
+          "Dashboard revenue, profit, dan outstanding payment real-time.",
+      },
+    ],
+  },
+  {
+    category: "Customer & Sales",
+    icon: Users,
+    color: "from-orange-500 to-orange-600",
+    features: [
+      {
+        icon: Users,
+        title: "CRM Terintegrasi",
+        description:
+          "Kelola data customer dari prospect hingga repeat customer dengan riwayat lengkap.",
+      },
+      {
+        icon: Handshake,
+        title: "Manajemen Agent",
+        description:
+          "Sistem keagenan dengan tier (Bronze-Platinum), komisi, dan subdomain khusus.",
+      },
+      {
+        icon: Tag,
+        title: "Promo & Voucher",
+        description:
+          "Buat berbagai jenis promo: Early Bird, Flash Sale, Group Discount, Referral.",
+      },
+    ],
+  },
+  {
+    category: "SDM & Inventory",
+    icon: UserCog,
+    color: "from-pink-500 to-pink-600",
+    features: [
+      {
+        icon: UserCog,
+        title: "HRIS Karyawan",
+        description:
+          "Kelola data karyawan, tour leader, absensi, cuti, dan penggajian.",
+      },
+      {
+        icon: Boxes,
+        title: "Inventory Management",
+        description:
+          "Stok perlengkapan jamaah, gudang, dan distribusi per manifest.",
+      },
+      {
+        icon: FileText,
+        title: "Dokumen Digital",
+        description:
+          "Upload dan verifikasi dokumen jamaah (paspor, KTP, foto) terintegrasi Google Drive.",
+      },
+    ],
+  },
+  {
+    category: "Teknologi",
+    icon: Smartphone,
+    color: "from-cyan-500 to-cyan-600",
+    features: [
+      {
+        icon: Watch,
+        title: "IoT Tracking",
+        description:
+          "Integrasi Huawei Smartwatch untuk tracking lokasi GPS dan health monitoring jamaah.",
+      },
+      {
+        icon: Smartphone,
+        title: "Customer Portal",
+        description:
+          "Portal khusus jamaah untuk booking, pembayaran, dokumen, e-ticket, dan tracking.",
+      },
+      {
+        icon: Globe,
+        title: "Multi-tenant & Multi-bahasa",
+        description:
+          "Arsitektur multi-tenant dengan dukungan multi-bahasa dan multi-currency.",
+      },
+    ],
+  },
+];
+
+const systemHighlights = [
+  { value: "7+", label: "Jenis Perjalanan" },
+  { value: "15+", label: "Modul Terintegrasi" },
+  { value: "80+", label: "Fitur Lengkap" },
+  { value: "11", label: "Role Pengguna" },
+];
+
+function SystemFeaturesSection() {
+  const [activeCategory, setActiveCategory] = useState(0);
+
+  return (
+    <section
+      id="system-features"
+      className="bg-gradient-to-b from-gray-900 to-gray-800 py-24 px-4 text-white"
+    >
+      <div className="mx-auto max-w-7xl">
+        {/* Header */}
+        <div className="text-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-emerald-400 font-semibold">
+            <LayoutDashboard className="h-4 w-4" />
+            Sistem ERP Travel Terlengkap
+          </span>
+          <h2 className="mt-4 text-4xl font-bold md:text-5xl">
+            Semua yang Anda Butuhkan dalam{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+              Satu Platform
+            </span>
+          </h2>
+          <p className="mt-4 text-lg text-gray-400 max-w-3xl mx-auto">
+            Sistem manajemen travel terlengkap untuk Umrah, Haji, dan berbagai
+            jenis perjalanan wisata. Dirancang khusus untuk kebutuhan biro
+            perjalanan Indonesia.
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
+          {systemHighlights.map((stat, i) => (
+            <div
+              key={i}
+              className="rounded-2xl bg-white/5 backdrop-blur p-6 text-center border border-white/10"
+            >
+              <p className="text-4xl font-bold text-emerald-400">
+                {stat.value}
+              </p>
+              <p className="mt-1 text-sm text-gray-400">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Category Tabs */}
+        <div className="mt-16 flex flex-wrap justify-center gap-3">
+          {systemFeatures.map((cat, i) => {
+            const Icon = cat.icon;
+            return (
+              <button
+                key={i}
+                onClick={() => setActiveCategory(i)}
+                className={`flex items-center gap-2 rounded-full px-5 py-3 font-medium transition-all ${
+                  activeCategory === i
+                    ? `bg-gradient-to-r ${cat.color} text-white shadow-lg`
+                    : "bg-white/10 text-gray-300 hover:bg-white/20"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {cat.category}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Features Grid */}
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {systemFeatures[activeCategory].features.map((feature, i) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={i}
+                className="group rounded-2xl bg-white/5 backdrop-blur border border-white/10 p-8 hover:bg-white/10 transition-all"
+              >
+                <div
+                  className={`flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${systemFeatures[activeCategory].color} text-white shadow-lg`}
+                >
+                  <Icon className="h-7 w-7" />
+                </div>
+                <h3 className="mt-6 text-xl font-bold">{feature.title}</h3>
+                <p className="mt-3 text-gray-400 leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* All Features List */}
+        <div className="mt-16 rounded-2xl bg-white/5 backdrop-blur border border-white/10 p-8">
+          <h3 className="text-2xl font-bold mb-6 text-center">
+            Fitur Unggulan Lainnya
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              "Dashboard Analytics Real-time",
+              "11 Role Pengguna (Admin, Finance, Operasional, dll)",
+              "Soft Delete & Audit Trail",
+              "Google OAuth & Credentials Login",
+              "Google Drive Integration",
+              "Huawei Health Kit API",
+              "E-Ticket & E-Voucher",
+              "Trip Itinerary Day-by-Day",
+              "Live GPS Tracking",
+              "Health Monitoring Jamaah",
+              "Support Ticket System",
+              "Landing Page CMS",
+              "SEO Optimized",
+              "Responsive Design",
+              "Dark Mode Ready",
+              "API-First Architecture",
+            ].map((feature, i) => (
+              <div key={i} className="flex items-center gap-2 text-gray-300">
+                <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+                <span className="text-sm">{feature}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Security & Tech Stack */}
+        <div className="mt-12 grid gap-6 md:grid-cols-2">
+          <div className="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 p-8">
+            <Lock className="h-12 w-12 text-emerald-400 mb-4" />
+            <h3 className="text-xl font-bold mb-2">Keamanan Terjamin</h3>
+            <p className="text-gray-400">
+              Dibangun dengan NextAuth v5, enkripsi data, role-based access
+              control, dan audit trail untuk menjaga keamanan data bisnis dan
+              jamaah Anda.
+            </p>
+          </div>
+          <div className="rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 p-8">
+            <Layers className="h-12 w-12 text-purple-400 mb-4" />
+            <h3 className="text-xl font-bold mb-2">Teknologi Modern</h3>
+            <p className="text-gray-400">
+              Next.js 15, TypeScript, Prisma ORM, PostgreSQL, Tailwind CSS 4,
+              dan React Query untuk performa optimal dan kemudahan pengembangan.
+            </p>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="mt-16 text-center">
+          <Link
+            href="/register"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-8 py-4 text-lg font-semibold text-white shadow-xl hover:shadow-emerald-500/30 transition-all"
+          >
+            Mulai Gunakan Sekarang
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+          <p className="mt-4 text-gray-500">
+            Gratis trial 14 hari, tanpa kartu kredit
+          </p>
         </div>
       </div>
     </section>
