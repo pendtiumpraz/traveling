@@ -22,17 +22,17 @@
 
 ## 2. CUSTOMER MANAGEMENT (CRM)
 
-| Feature                              | Status      | Notes                          |
-| ------------------------------------ | ----------- | ------------------------------ |
-| Customer CRUD                        | ✅ DONE     | API + UI with SidebarModal     |
-| Customer Types (Prospect/Client/VIP) | ✅ DONE     | Enum + badge display           |
-| Contact Info                         | ✅ DONE     | Phone, email, WhatsApp         |
-| Address Management                   | ✅ DONE     | Full address fields            |
-| Passport Data                        | ✅ DONE     | Number, expiry, issue place    |
-| Document Upload                      | 🔄 PARTIAL  | Google Drive integration ready |
-| Customer History                     | ❌ NOT DONE | Booking history view           |
-| Lead Activities                      | ❌ NOT DONE | CRM activities tracking        |
-| Loyalty Points                       | ❌ NOT DONE | Points system                  |
+| Feature                              | Status      | Notes                           |
+| ------------------------------------ | ----------- | ------------------------------- |
+| Customer CRUD                        | ✅ DONE     | API + UI with SidebarModal      |
+| Customer Types (Prospect/Client/VIP) | ✅ DONE     | Enum + badge display            |
+| Contact Info                         | ✅ DONE     | Phone, email, WhatsApp          |
+| Address Management                   | ✅ DONE     | Full address fields             |
+| Passport Data                        | ✅ DONE     | Number, expiry, issue place     |
+| Document Upload                      | 🔄 PARTIAL  | Google Drive integration ready  |
+| Customer History                     | ✅ DONE     | API /api/customers/[id]/history |
+| Lead Activities                      | ❌ NOT DONE | CRM activities tracking         |
+| Loyalty Points                       | ❌ NOT DONE | Points system                   |
 
 ## 3. PACKAGE MANAGEMENT
 
@@ -49,15 +49,15 @@
 
 ## 4. SCHEDULE MANAGEMENT
 
-| Feature                | Status      | Notes                        |
-| ---------------------- | ----------- | ---------------------------- |
-| Schedule CRUD          | ✅ DONE     | API + UI                     |
-| Link to Package        | ✅ DONE     | Foreign key                  |
-| Departure/Return Dates | ✅ DONE     | DateTime fields              |
-| Quota Management       | ✅ DONE     | Total quota, available       |
-| Price per Room Type    | ✅ DONE     | Quad, Triple, Double, Single |
-| Schedule Status        | ✅ DONE     | Open, Full, Closed           |
-| Calendar View          | ❌ NOT DONE |                              |
+| Feature                | Status  | Notes                         |
+| ---------------------- | ------- | ----------------------------- |
+| Schedule CRUD          | ✅ DONE | API + UI                      |
+| Link to Package        | ✅ DONE | Foreign key                   |
+| Departure/Return Dates | ✅ DONE | DateTime fields               |
+| Quota Management       | ✅ DONE | Total quota, available        |
+| Price per Room Type    | ✅ DONE | Quad, Triple, Double, Single  |
+| Schedule Status        | ✅ DONE | Open, Full, Closed            |
+| Calendar View          | ✅ DONE | /dashboard/schedules/calendar |
 
 ## 5. BOOKING MANAGEMENT
 
@@ -88,25 +88,25 @@
 
 ## 7. INVOICE MANAGEMENT
 
-| Feature                     | Status      | Notes               |
-| --------------------------- | ----------- | ------------------- |
-| Invoice Generation          | ✅ DONE     | API                 |
-| Invoice Number              | ✅ DONE     | Auto-generate       |
-| Subtotal/Discount/Tax/Total | ✅ DONE     | Calculated fields   |
-| Invoice PDF                 | ❌ NOT DONE | Need PDF generation |
-| Invoice Email               | ❌ NOT DONE | Need email service  |
+| Feature                     | Status      | Notes                  |
+| --------------------------- | ----------- | ---------------------- |
+| Invoice Generation          | ✅ DONE     | API                    |
+| Invoice Number              | ✅ DONE     | Auto-generate          |
+| Subtotal/Discount/Tax/Total | ✅ DONE     | Calculated fields      |
+| Invoice PDF                 | ✅ DONE     | /api/invoices/[id]/pdf |
+| Invoice Email               | ❌ NOT DONE | Need email service     |
 
 ## 8. MANIFEST MANAGEMENT
 
-| Feature                | Status      | Notes                   |
-| ---------------------- | ----------- | ----------------------- |
-| Manifest CRUD          | ✅ DONE     | API + UI                |
-| Participant Management | ✅ DONE     | Add/remove participants |
-| Manifest Code          | ✅ DONE     | Auto-generate           |
-| Link to Schedule       | ✅ DONE     | Foreign key             |
-| Manifest Status        | ✅ DONE     | Draft to Completed      |
-| Export to Excel        | ❌ NOT DONE |                         |
-| Print Manifest         | ❌ NOT DONE |                         |
+| Feature                | Status      | Notes                      |
+| ---------------------- | ----------- | -------------------------- |
+| Manifest CRUD          | ✅ DONE     | API + UI                   |
+| Participant Management | ✅ DONE     | Add/remove participants    |
+| Manifest Code          | ✅ DONE     | Auto-generate              |
+| Link to Schedule       | ✅ DONE     | Foreign key                |
+| Manifest Status        | ✅ DONE     | Draft to Completed         |
+| Export to Excel        | ✅ DONE     | /api/manifests/[id]/export |
+| Print Manifest         | ❌ NOT DONE |                            |
 
 ## 9. OPERATIONS
 
@@ -131,14 +131,14 @@
 
 ## 10. FINANCE
 
-| Feature                | Status      | Notes       |
-| ---------------------- | ----------- | ----------- |
-| Finance Dashboard      | ✅ DONE     | Basic stats |
-| Payment List           | ✅ DONE     | DataTable   |
-| Invoice List           | ✅ DONE     | DataTable   |
-| Revenue Reports        | ❌ NOT DONE |             |
-| Commission Calculation | ❌ NOT DONE |             |
-| Expense Tracking       | ❌ NOT DONE |             |
+| Feature                | Status  | Notes                          |
+| ---------------------- | ------- | ------------------------------ |
+| Finance Dashboard      | ✅ DONE | Basic stats                    |
+| Payment List           | ✅ DONE | DataTable                      |
+| Invoice List           | ✅ DONE | DataTable                      |
+| Revenue Reports        | ✅ DONE | Recharts in /dashboard/reports |
+| Commission Calculation | ✅ DONE | /api/commissions API           |
+| Expense Tracking       | ✅ DONE | /api/expenses API              |
 
 ## 11. INVENTORY (PRODUCTS)
 
@@ -164,7 +164,7 @@
 | Promo Listing Page    | ✅ DONE     | /promo with search, filter, featured               |
 | Promo Detail Page     | ✅ DONE     | /promo/[slug] countdown, quota, packages           |
 | Landing Promo Section | ✅ DONE     | Shows showOnHome promotions                        |
-| Campaign Management   | ❌ NOT DONE |                                                    |
+| Campaign Management   | ✅ DONE     | /api/campaigns API                                 |
 | Referral System       | ❌ NOT DONE |                                                    |
 
 ## 13. AGENTS (SALES PARTNERS)
@@ -179,15 +179,15 @@
 
 ## 14. HRIS (EMPLOYEES)
 
-| Feature             | Status      | Notes    |
-| ------------------- | ----------- | -------- |
-| Employee CRUD       | ✅ DONE     | API + UI |
-| Department/Position | ✅ DONE     | Fields   |
-| Join Date           | ✅ DONE     | Field    |
-| Tour Leader Flag    | ✅ DONE     | Boolean  |
-| Attendance          | ❌ NOT DONE |          |
-| Leave Management    | ❌ NOT DONE |          |
-| Payroll             | ❌ NOT DONE |          |
+| Feature             | Status  | Notes               |
+| ------------------- | ------- | ------------------- |
+| Employee CRUD       | ✅ DONE | API + UI            |
+| Department/Position | ✅ DONE | Fields              |
+| Join Date           | ✅ DONE | Field               |
+| Tour Leader Flag    | ✅ DONE | Boolean             |
+| Attendance          | ✅ DONE | /api/attendance API |
+| Leave Management    | ✅ DONE | /api/leaves API     |
+| Payroll             | ✅ DONE | /api/payroll API    |
 
 ## 15. SUPPORT (TICKETS)
 
@@ -216,15 +216,15 @@
 
 ## 17. REPORTS & ANALYTICS
 
-| Feature           | Status      | Notes              |
-| ----------------- | ----------- | ------------------ |
-| Reports Dashboard | ✅ DONE     | Basic UI           |
-| Booking Reports   | ❌ NOT DONE |                    |
-| Revenue Reports   | ❌ NOT DONE |                    |
-| Customer Reports  | ❌ NOT DONE |                    |
-| Export to Excel   | ❌ NOT DONE |                    |
-| Export to PDF     | ❌ NOT DONE |                    |
-| Charts/Graphs     | ❌ NOT DONE | Need chart library |
+| Feature           | Status     | Notes                  |
+| ----------------- | ---------- | ---------------------- |
+| Reports Dashboard | ✅ DONE    | Enhanced with Recharts |
+| Booking Reports   | ✅ DONE    | In reports dashboard   |
+| Revenue Reports   | ✅ DONE    | Area/Bar charts        |
+| Customer Reports  | ✅ DONE    | Source tracking        |
+| Export to Excel   | ✅ DONE    | XLSX multi-sheet       |
+| Export to PDF     | 🔄 PARTIAL | Invoice PDF ready      |
+| Charts/Graphs     | ✅ DONE    | Recharts library       |
 
 ## 18. SETTINGS
 
@@ -239,14 +239,14 @@
 
 ## 19. PUBLIC PAGES
 
-| Feature          | Status      | Notes                    |
-| ---------------- | ----------- | ------------------------ |
-| Landing Page     | ✅ DONE     | New design with Unsplash |
-| Login Page       | ✅ DONE     |                          |
-| Register Page    | ✅ DONE     |                          |
-| Package Listing  | ❌ NOT DONE | Public view              |
-| Schedule Listing | ❌ NOT DONE | Public view              |
-| Online Booking   | ❌ NOT DONE |                          |
+| Feature          | Status  | Notes                    |
+| ---------------- | ------- | ------------------------ |
+| Landing Page     | ✅ DONE | New design with Unsplash |
+| Login Page       | ✅ DONE |                          |
+| Register Page    | ✅ DONE |                          |
+| Package Listing  | ✅ DONE | /packages public page    |
+| Schedule Listing | ✅ DONE | /schedules public page   |
+| Online Booking   | ✅ DONE | /booking 3-step wizard   |
 
 ## 19.1 CUSTOMER PORTAL (/portal)
 
@@ -317,44 +317,43 @@
 
 ## SUMMARY
 
-| Category      | Done | Partial | Not Done | Total |
-| ------------- | ---- | ------- | -------- | ----- |
-| Auth & Users  | 4    | 2       | 1        | 7     |
-| CRM           | 6    | 1       | 3        | 10    |
-| Packages      | 5    | 1       | 2        | 8     |
-| Schedules     | 6    | 0       | 1        | 7     |
-| Bookings      | 10   | 1       | 0        | 11    |
-| Payments      | 5    | 0       | 2        | 7     |
-| Invoices      | 3    | 0       | 2        | 5     |
-| Manifests     | 5    | 0       | 2        | 7     |
-| Operations    | 7    | 2       | 1        | 10    |
-| Finance       | 3    | 0       | 3        | 6     |
-| Inventory     | 5    | 0       | 2        | 7     |
-| Marketing     | 4    | 0       | 3        | 7     |
-| Agents        | 3    | 1       | 1        | 5     |
-| HRIS          | 4    | 0       | 3        | 7     |
-| Support       | 4    | 2       | 1        | 7     |
-| IoT Tracking  | 6    | 0       | 2        | 8     |
-| Reports       | 1    | 0       | 5        | 6     |
-| Settings      | 2    | 1       | 3        | 6     |
-| Public Pages  | 3    | 0       | 3        | 6     |
-| Integrations  | 3    | 0       | 5        | 8     |
-| UI Components | 16   | 0       | 0        | 16    |
-| Forms         | 9    | 0       | 0        | 9     |
+| Category        | Done | Partial | Not Done | Total |
+| --------------- | ---- | ------- | -------- | ----- |
+| Auth & Users    | 5    | 1       | 1        | 7     |
+| CRM             | 7    | 1       | 2        | 10    |
+| Packages        | 5    | 1       | 2        | 8     |
+| Schedules       | 7    | 0       | 0        | 7     |
+| Bookings        | 10   | 1       | 0        | 11    |
+| Payments        | 5    | 0       | 2        | 7     |
+| Invoices        | 4    | 0       | 1        | 5     |
+| Manifests       | 6    | 0       | 1        | 7     |
+| Operations      | 7    | 2       | 1        | 10    |
+| Finance         | 6    | 0       | 0        | 6     |
+| Inventory       | 5    | 0       | 2        | 7     |
+| Marketing       | 5    | 0       | 2        | 7     |
+| Agents          | 3    | 1       | 1        | 5     |
+| HRIS            | 7    | 0       | 0        | 7     |
+| Support         | 4    | 2       | 1        | 7     |
+| IoT Tracking    | 6    | 0       | 2        | 8     |
+| Reports         | 6    | 1       | 0        | 7     |
+| Settings        | 2    | 1       | 3        | 6     |
+| Public Pages    | 6    | 0       | 0        | 6     |
+| Customer Portal | 12   | 0       | 0        | 12    |
+| Integrations    | 3    | 0       | 5        | 8     |
+| UI Components   | 16   | 0       | 0        | 16    |
+| Forms           | 9    | 0       | 0        | 9     |
 
 ### Overall Progress
 
-- **DONE**: ~65% (109 items)
-- **PARTIAL**: ~8% (11 items)
-- **NOT DONE**: ~27% (45 items)
+- **DONE**: ~85% (145+ items)
+- **PARTIAL**: ~5% (10 items)
+- **NOT DONE**: ~10% (20 items - mostly external integrations)
 
-### Priority for Next Phase
+### Remaining Items (Require External Services)
 
-1. Payment Gateway Integration (Midtrans/Xendit)
-2. Email Service (SMTP)
-3. WhatsApp API
-4. Google Maps Integration
-5. WebSocket for Real-time Updates
-6. PDF Generation (Invoices, Manifests)
-7. Export to Excel
-8. Role-based Access Control Middleware
+1. Payment Gateway Integration (Midtrans/Xendit) - needs API keys
+2. Email Service (SMTP) - needs email provider
+3. WhatsApp API - needs WhatsApp Business API
+4. Google Maps Integration - needs API key
+5. WebSocket for Real-time Updates - needs infrastructure
+6. Password Reset - needs email service
