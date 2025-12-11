@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 2. Create System Roles
+    // 2. Create System Roles (11 roles from requirements)
     const rolesData = [
       {
         name: "SUPER_ADMIN",
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
         name: "ADMIN",
         displayName: { id: "Administrator", en: "Administrator" },
         permissions: [
-          "dashboard:view",
+          "dashboard:*",
           "customer:*",
           "booking:*",
           "package:*",
@@ -61,39 +61,73 @@ export async function POST(request: NextRequest) {
           "product:*",
           "report:*",
           "setting:*",
+          "support:*",
         ],
         isSystem: true,
       },
       {
-        name: "MANAGER",
-        displayName: { id: "Manajer", en: "Manager" },
+        name: "FINANCE",
+        displayName: { id: "Keuangan", en: "Finance" },
+        permissions: [
+          "dashboard:view",
+          "payment:*",
+          "invoice:*",
+          "commission:*",
+          "report:finance",
+          "customer:read",
+          "booking:read",
+        ],
+        isSystem: true,
+      },
+      {
+        name: "OPERASIONAL",
+        displayName: { id: "Operasional", en: "Operations" },
+        permissions: [
+          "dashboard:view",
+          "manifest:*",
+          "schedule:*",
+          "rooming:*",
+          "flight:*",
+          "tracking:*",
+          "customer:read",
+          "booking:read",
+        ],
+        isSystem: true,
+      },
+      {
+        name: "MARKETING",
+        displayName: { id: "Marketing", en: "Marketing" },
         permissions: [
           "dashboard:view",
           "customer:*",
-          "booking:*",
-          "package:read",
-          "schedule:*",
-          "payment:*",
-          "invoice:*",
-          "manifest:*",
-          "report:view",
+          "voucher:*",
+          "campaign:*",
+          "report:marketing",
+          "booking:read",
         ],
         isSystem: true,
       },
       {
-        name: "STAFF",
-        displayName: { id: "Staff", en: "Staff" },
+        name: "HRD",
+        displayName: { id: "HRD", en: "Human Resources" },
         permissions: [
           "dashboard:view",
-          "customer:read",
-          "customer:create",
-          "customer:update",
-          "booking:read",
-          "booking:create",
-          "booking:update",
-          "payment:read",
-          "payment:create",
-          "manifest:read",
+          "employee:*",
+          "attendance:*",
+          "payroll:*",
+          "leave:*",
+        ],
+        isSystem: true,
+      },
+      {
+        name: "INVENTORY",
+        displayName: { id: "Inventory", en: "Inventory" },
+        permissions: [
+          "dashboard:view",
+          "product:*",
+          "stock:*",
+          "warehouse:*",
+          "distribution:*",
         ],
         isSystem: true,
       },
@@ -104,8 +138,10 @@ export async function POST(request: NextRequest) {
           "dashboard:view",
           "manifest:read",
           "customer:read",
-          "tracking:view",
+          "tracking:*",
           "attendance:*",
+          "participant:read",
+          "schedule:read",
         ],
         isSystem: true,
       },
@@ -116,9 +152,28 @@ export async function POST(request: NextRequest) {
           "dashboard:view",
           "customer:create",
           "customer:read:own",
+          "customer:update:own",
           "booking:create",
           "booking:read:own",
           "commission:read:own",
+          "package:read",
+          "schedule:read",
+        ],
+        isSystem: true,
+      },
+      {
+        name: "SALES",
+        displayName: { id: "Sales", en: "Sales" },
+        permissions: [
+          "dashboard:view",
+          "customer:*",
+          "booking:*",
+          "payment:create",
+          "payment:read",
+          "package:read",
+          "schedule:read",
+          "voucher:read",
+          "report:sales",
         ],
         isSystem: true,
       },
@@ -126,10 +181,20 @@ export async function POST(request: NextRequest) {
         name: "CUSTOMER",
         displayName: { id: "Pelanggan", en: "Customer" },
         permissions: [
+          "portal:access",
+          "package:read",
+          "schedule:read",
           "booking:create",
           "booking:read:own",
           "payment:create",
+          "payment:read:own",
+          "document:upload",
+          "document:read:own",
+          "profile:read",
           "profile:update",
+          "tracking:read:own",
+          "ticket:create",
+          "ticket:read:own",
         ],
         isSystem: true,
       },
@@ -155,7 +220,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 3. Create Demo Users for Each Role
+    // 3. Create Demo Users for Each Role (11 roles)
     const demoUsers = [
       {
         email: adminEmail,
@@ -170,16 +235,34 @@ export async function POST(request: NextRequest) {
         role: "ADMIN",
       },
       {
-        email: "manager@demo.com",
-        password: "manager123",
-        name: "Manager Demo",
-        role: "MANAGER",
+        email: "finance@demo.com",
+        password: "finance123",
+        name: "Finance Demo",
+        role: "FINANCE",
       },
       {
-        email: "staff@demo.com",
-        password: "staff123",
-        name: "Staff Demo",
-        role: "STAFF",
+        email: "operasional@demo.com",
+        password: "operasional123",
+        name: "Operasional Demo",
+        role: "OPERASIONAL",
+      },
+      {
+        email: "marketing@demo.com",
+        password: "marketing123",
+        name: "Marketing Demo",
+        role: "MARKETING",
+      },
+      {
+        email: "hrd@demo.com",
+        password: "hrd123",
+        name: "HRD Demo",
+        role: "HRD",
+      },
+      {
+        email: "inventory@demo.com",
+        password: "inventory123",
+        name: "Inventory Demo",
+        role: "INVENTORY",
       },
       {
         email: "tourleader@demo.com",
@@ -194,9 +277,15 @@ export async function POST(request: NextRequest) {
         role: "AGENT",
       },
       {
+        email: "sales@demo.com",
+        password: "sales123",
+        name: "Sales Demo",
+        role: "SALES",
+      },
+      {
         email: "customer@demo.com",
         password: "customer123",
-        name: "Customer Demo",
+        name: "Ahmad Jamaah",
         role: "CUSTOMER",
       },
     ];
@@ -252,29 +341,42 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        // Create employee record for staff roles
+        // Create employee record for internal staff roles
         if (
-          ["ADMIN", "MANAGER", "STAFF", "TOUR_LEADER"].includes(demoUser.role)
+          [
+            "ADMIN",
+            "FINANCE",
+            "OPERASIONAL",
+            "MARKETING",
+            "HRD",
+            "INVENTORY",
+            "TOUR_LEADER",
+            "SALES",
+          ].includes(demoUser.role)
         ) {
           const existingEmployee = await prisma.employee.findFirst({
             where: { userId: user.id },
           });
 
           if (!existingEmployee) {
+            const deptMap: Record<string, string> = {
+              ADMIN: "Administration",
+              FINANCE: "Finance",
+              OPERASIONAL: "Operations",
+              MARKETING: "Marketing",
+              HRD: "Human Resources",
+              INVENTORY: "Warehouse",
+              TOUR_LEADER: "Operations",
+              SALES: "Sales",
+            };
             await prisma.employee.create({
               data: {
                 tenantId,
                 nip: `EMP-${Date.now().toString().slice(-6)}`,
                 name: demoUser.name,
                 email: demoUser.email,
-                position:
-                  demoUser.role === "TOUR_LEADER"
-                    ? "Tour Leader"
-                    : demoUser.role,
-                department:
-                  demoUser.role === "TOUR_LEADER"
-                    ? "Operations"
-                    : "Administration",
+                position: demoUser.role.replace("_", " "),
+                department: deptMap[demoUser.role] || "General",
                 status: "ACTIVE",
                 isTourLeader: demoUser.role === "TOUR_LEADER",
                 userId: user.id,
@@ -339,21 +441,25 @@ export async function POST(request: NextRequest) {
         roles: Object.keys(createdRoles),
         users: createdUsers,
         loginInfo: `
-===========================================
-        DEMO LOGIN CREDENTIALS
-===========================================
+============================================================
+                   DEMO LOGIN CREDENTIALS (11 ROLES)
+============================================================
 
-| Role         | Email                | Password      |
-|--------------|----------------------|---------------|
-| SUPER_ADMIN  | ${adminEmail}        | ${adminPassword} |
-| ADMIN        | admin@demo.com       | admin123      |
-| MANAGER      | manager@demo.com     | manager123    |
-| STAFF        | staff@demo.com       | staff123      |
-| TOUR_LEADER  | tourleader@demo.com  | tourleader123 |
-| AGENT        | agent@demo.com       | agent123      |
-| CUSTOMER     | customer@demo.com    | customer123   |
+| Role         | Email                   | Password        | Access                |
+|--------------|-------------------------|-----------------|----------------------|
+| SUPER_ADMIN  | ${adminEmail.padEnd(23)} | ${adminPassword.padEnd(15)} | Full Access          |
+| ADMIN        | admin@demo.com          | admin123        | Dashboard Full       |
+| FINANCE      | finance@demo.com        | finance123      | Keuangan, Payment    |
+| OPERASIONAL  | operasional@demo.com    | operasional123  | Manifest, Schedule   |
+| MARKETING    | marketing@demo.com      | marketing123    | CRM, Voucher         |
+| HRD          | hrd@demo.com            | hrd123          | Employee, Payroll    |
+| INVENTORY    | inventory@demo.com      | inventory123    | Stock, Warehouse     |
+| TOUR_LEADER  | tourleader@demo.com     | tourleader123   | Manifest, Tracking   |
+| AGENT        | agent@demo.com          | agent123        | Own Customer/Booking |
+| SALES        | sales@demo.com          | sales123        | Customer, Booking    |
+| CUSTOMER     | customer@demo.com       | customer123     | Portal Only          |
 
-===========================================
+============================================================
         `,
       },
       "Seed completed successfully with demo users",

@@ -12,50 +12,93 @@ const publicPaths = [
   "/api/settings/landing",
 ];
 
-// Role-based path access
+// Role-based path access (11 roles from requirements)
 const rolePathAccess: Record<string, string[]> = {
+  // Full access
   SUPER_ADMIN: ["/dashboard", "/api"],
   ADMIN: ["/dashboard", "/api"],
-  MANAGER: [
+
+  // Department-specific
+  FINANCE: [
     "/dashboard",
-    "/dashboard/customers",
-    "/dashboard/packages",
-    "/dashboard/schedules",
-    "/dashboard/bookings",
-    "/dashboard/operations",
     "/dashboard/finance",
     "/dashboard/reports",
-    "/api/customers",
-    "/api/packages",
-    "/api/schedules",
-    "/api/bookings",
     "/api/payments",
-    "/api/manifests",
+    "/api/invoices",
+    "/api/commissions",
   ],
-  STAFF: [
+  OPERASIONAL: [
+    "/dashboard",
+    "/dashboard/operations",
+    "/dashboard/schedules",
+    "/dashboard/tracking",
+    "/api/manifests",
+    "/api/schedules",
+    "/api/tracking",
+    "/api/rooming",
+    "/api/flights",
+  ],
+  MARKETING: [
     "/dashboard",
     "/dashboard/customers",
-    "/dashboard/bookings",
-    "/dashboard/operations",
+    "/dashboard/marketing",
+    "/dashboard/reports",
     "/api/customers",
-    "/api/bookings",
-    "/api/payments",
-    "/api/manifests",
+    "/api/vouchers",
+    "/api/campaigns",
   ],
+  HRD: [
+    "/dashboard",
+    "/dashboard/hris",
+    "/api/employees",
+    "/api/attendance",
+    "/api/payroll",
+  ],
+  INVENTORY: [
+    "/dashboard",
+    "/dashboard/inventory",
+    "/api/products",
+    "/api/stock",
+    "/api/warehouses",
+  ],
+
+  // Field roles
   TOUR_LEADER: [
     "/dashboard",
     "/dashboard/operations",
     "/dashboard/tracking",
     "/api/manifests",
     "/api/tracking",
+    "/api/attendance",
   ],
+
+  // External roles
   AGENT: [
     "/dashboard",
     "/dashboard/customers",
     "/dashboard/bookings",
+    "/dashboard/packages",
+    "/dashboard/schedules",
     "/api/customers",
     "/api/bookings",
+    "/api/packages",
+    "/api/schedules",
   ],
+  SALES: [
+    "/dashboard",
+    "/dashboard/customers",
+    "/dashboard/bookings",
+    "/dashboard/packages",
+    "/dashboard/schedules",
+    "/dashboard/reports",
+    "/api/customers",
+    "/api/bookings",
+    "/api/packages",
+    "/api/schedules",
+    "/api/payments",
+  ],
+
+  // Customer portal
   CUSTOMER: ["/portal", "/api/portal"],
 };
 

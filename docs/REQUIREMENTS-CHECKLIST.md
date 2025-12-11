@@ -10,15 +10,15 @@
 
 ## 1. AUTHENTICATION & USER MANAGEMENT
 
-| Feature              | Status      | Notes                             |
-| -------------------- | ----------- | --------------------------------- |
-| Email/Password Login | ✅ DONE     | NextAuth Credentials provider     |
-| Google OAuth         | ✅ DONE     | NextAuth Google provider          |
-| User Registration    | ✅ DONE     | Auto-create PROSPECT customer     |
-| Password Reset       | ❌ NOT DONE | Need email service                |
-| Session Management   | ✅ DONE     | JWT strategy                      |
-| Role-based Access    | 🔄 PARTIAL  | Roles defined, middleware pending |
-| Multi-tenant         | 🔄 PARTIAL  | TenantId in schema, logic pending |
+| Feature              | Status      | Notes                                     |
+| -------------------- | ----------- | ----------------------------------------- |
+| Email/Password Login | ✅ DONE     | NextAuth Credentials provider             |
+| Google OAuth         | ✅ DONE     | NextAuth Google provider                  |
+| User Registration    | ✅ DONE     | Auto-create PROSPECT customer             |
+| Password Reset       | ❌ NOT DONE | Need email service                        |
+| Session Management   | ✅ DONE     | JWT strategy                              |
+| Role-based Access    | ✅ DONE     | 11 roles with middleware + sidebar filter |
+| Multi-tenant         | 🔄 PARTIAL  | TenantId in schema, logic pending         |
 
 ## 2. CUSTOMER MANAGEMENT (CRM)
 
@@ -244,6 +244,23 @@
 | Package Listing  | ❌ NOT DONE | Public view              |
 | Schedule Listing | ❌ NOT DONE | Public view              |
 | Online Booking   | ❌ NOT DONE |                          |
+
+## 19.1 CUSTOMER PORTAL (/portal)
+
+| Feature            | Status      | Notes                   |
+| ------------------ | ----------- | ----------------------- |
+| Portal Layout      | ❌ NOT DONE | Separate from dashboard |
+| Browse Packages    | ❌ NOT DONE | View available packages |
+| View Schedules     | ❌ NOT DONE | See departure dates     |
+| Make Booking       | ❌ NOT DONE | Online booking flow     |
+| My Bookings        | ❌ NOT DONE | View own bookings       |
+| Payment History    | ❌ NOT DONE | View payment status     |
+| Upload Documents   | ❌ NOT DONE | Passport, KTP, etc      |
+| E-Ticket/E-Voucher | ❌ NOT DONE | Download tickets        |
+| Trip Itinerary     | ❌ NOT DONE | Day-by-day schedule     |
+| Live Tracking      | ❌ NOT DONE | Track own location      |
+| Support Tickets    | ❌ NOT DONE | Create/view tickets     |
+| Profile Settings   | ❌ NOT DONE | Update profile          |
 
 ## 20. INTEGRATIONS
 

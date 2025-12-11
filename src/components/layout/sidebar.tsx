@@ -24,8 +24,9 @@ import {
   Headphones,
 } from "lucide-react";
 
-// Role-based menu visibility
+// Role-based menu visibility (11 roles from requirements)
 const ROLE_MENUS: Record<string, string[]> = {
+  // Full access
   SUPER_ADMIN: [
     "dashboard",
     "customers",
@@ -60,19 +61,29 @@ const ROLE_MENUS: Record<string, string[]> = {
     "reports",
     "settings",
   ],
-  MANAGER: [
+
+  // Department-specific
+  FINANCE: ["dashboard", "finance", "reports"],
+  OPERASIONAL: ["dashboard", "operations", "schedules", "tracking"],
+  MARKETING: ["dashboard", "customers", "marketing", "reports"],
+  HRD: ["dashboard", "hris"],
+  INVENTORY: ["dashboard", "inventory"],
+
+  // Field roles
+  TOUR_LEADER: ["dashboard", "operations", "tracking"],
+
+  // External roles
+  AGENT: ["dashboard", "customers", "bookings", "packages", "schedules"],
+  SALES: [
     "dashboard",
     "customers",
+    "bookings",
     "packages",
     "schedules",
-    "bookings",
-    "operations",
-    "finance",
     "reports",
   ],
-  STAFF: ["dashboard", "customers", "bookings", "operations"],
-  TOUR_LEADER: ["dashboard", "operations", "tracking"],
-  AGENT: ["dashboard", "customers", "bookings"],
+
+  // Customer uses portal, not dashboard
   CUSTOMER: [],
 };
 
