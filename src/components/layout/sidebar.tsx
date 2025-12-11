@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { useThemeStore } from "@/stores/theme-store";
 import {
@@ -23,88 +24,140 @@ import {
   Headphones,
 } from "lucide-react";
 
+// Role-based menu visibility
+const ROLE_MENUS: Record<string, string[]> = {
+  SUPER_ADMIN: [
+    "dashboard",
+    "customers",
+    "packages",
+    "schedules",
+    "bookings",
+    "operations",
+    "tracking",
+    "finance",
+    "inventory",
+    "marketing",
+    "agents",
+    "hris",
+    "support",
+    "reports",
+    "settings",
+  ],
+  ADMIN: [
+    "dashboard",
+    "customers",
+    "packages",
+    "schedules",
+    "bookings",
+    "operations",
+    "tracking",
+    "finance",
+    "inventory",
+    "marketing",
+    "agents",
+    "hris",
+    "support",
+    "reports",
+    "settings",
+  ],
+  MANAGER: [
+    "dashboard",
+    "customers",
+    "packages",
+    "schedules",
+    "bookings",
+    "operations",
+    "finance",
+    "reports",
+  ],
+  STAFF: ["dashboard", "customers", "bookings", "operations"],
+  TOUR_LEADER: ["dashboard", "operations", "tracking"],
+  AGENT: ["dashboard", "customers", "bookings"],
+  CUSTOMER: [],
+};
+
 const menuItems = [
   {
+    key: "dashboard",
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
+    key: "customers",
     title: "Customers",
     href: "/dashboard/customers",
     icon: Users,
   },
   {
+    key: "packages",
     title: "Packages",
     href: "/dashboard/packages",
     icon: Package,
   },
   {
+    key: "schedules",
     title: "Schedules",
     href: "/dashboard/schedules",
     icon: Calendar,
   },
   {
+    key: "bookings",
     title: "Bookings",
     href: "/dashboard/bookings",
     icon: CreditCard,
   },
   {
+    key: "operations",
     title: "Operations",
     href: "/dashboard/operations",
     icon: Plane,
-    children: [
-      { title: "Manifests", href: "/dashboard/operations/manifests" },
-      { title: "Rooming", href: "/dashboard/operations/rooming" },
-      { title: "Flights", href: "/dashboard/operations/flights" },
-    ],
   },
   {
+    key: "tracking",
     title: "Tracking",
     href: "/dashboard/tracking",
     icon: MapPin,
   },
   {
+    key: "finance",
     title: "Finance",
     href: "/dashboard/finance",
     icon: CreditCard,
-    children: [
-      { title: "Payments", href: "/dashboard/finance/payments" },
-      { title: "Invoices", href: "/dashboard/finance/invoices" },
-      { title: "Commissions", href: "/dashboard/finance/commissions" },
-    ],
   },
   {
+    key: "inventory",
     title: "Inventory",
     href: "/dashboard/inventory",
     icon: Boxes,
   },
   {
+    key: "marketing",
     title: "Marketing",
     href: "/dashboard/marketing",
     icon: Megaphone,
   },
   {
+    key: "agents",
     title: "Agents",
     href: "/dashboard/agents",
     icon: Building2,
   },
+  { key: "hris", title: "HRIS", href: "/dashboard/hris", icon: UserCog },
   {
-    title: "HRIS",
-    href: "/dashboard/hris",
-    icon: UserCog,
-  },
-  {
+    key: "support",
     title: "Support",
     href: "/dashboard/support",
     icon: Headphones,
   },
   {
+    key: "reports",
     title: "Reports",
     href: "/dashboard/reports",
     icon: BarChart3,
   },
   {
+    key: "settings",
     title: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
@@ -113,8 +166,24 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const { config, toggleSidebar } = useThemeStore();
   const collapsed = config.sidebarCollapsed;
+
+  // Get user roles from session
+  const userRoles = (session?.user as { roles?: string[] })?.roles || [];
+
+  // Get allowed menus based on roles
+  const allowedMenuKeys = new Set<string>();
+  userRoles.forEach((role) => {
+    const menus = ROLE_MENUS[role] || [];
+    menus.forEach((menu) => allowedMenuKeys.add(menu));
+  });
+
+  // Filter menu items based on allowed menus
+  const filteredMenuItems = menuItems.filter((item) =>
+    allowedMenuKeys.has(item.key),
+  );
 
   return (
     <aside
@@ -151,7 +220,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="h-[calc(100vh-64px)] overflow-y-auto p-3">
         <ul className="space-y-1">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
