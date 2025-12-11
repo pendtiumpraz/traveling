@@ -521,6 +521,11 @@ model User {
   agent             Agent?
   sales             Sales?
   
+  // Finance approvals
+  expensesApproved  Expense[]          @relation("ExpenseApprovedBy")
+  payoutsProcessed  CommissionPayout[] @relation("PayoutProcessedBy")
+  stockMovements    StockMovement[]
+  
   @@unique([tenantId, email])
   @@index([isDeleted])
   @@map("users")
@@ -941,6 +946,8 @@ model Schedule {
   package        Package        @relation(fields: [packageId], references: [id])
   bookings       Booking[]
   manifests      Manifest[]
+  expenses       Expense[]
+  stockMovements StockMovement[]
   
   @@index([isDeleted])
   @@map("schedules")
@@ -1043,6 +1050,10 @@ model Customer {
   activities     LeadActivity[]
   tickets        Ticket[]
   loyaltyPoints  LoyaltyPoint[]
+  
+  // Referrals
+  referralsGiven    Referral[] @relation("Referrer")
+  referralsReceived Referral[] @relation("Referred")
   
   // Manifest
   manifestParticipants ManifestParticipant[]
@@ -1201,6 +1212,7 @@ model Booking {
   payments       Payment[]
   invoices       Invoice[]
   commissions    Commission[]
+  referral       Referral?
   
   @@unique([tenantId, bookingCode])
   @@index([isDeleted])
@@ -1525,6 +1537,7 @@ model Agent {
   user           User?     @relation(fields: [userId], references: [id])
   bookings       Booking[]
   commissions    Commission[]
+  payouts        CommissionPayout[]
   
   @@unique([tenantId, code])
   @@index([isDeleted])
@@ -1582,6 +1595,8 @@ model Commission {
   bookingId   String
   agentId     String?
   salesId     String?
+  employeeId  String?
+  payoutId    String?
   amount      Decimal          @db.Decimal(15, 2)
   rate        Decimal          @db.Decimal(5, 2)
   status      CommissionStatus @default(PENDING)
@@ -1598,8 +1613,11 @@ model Commission {
   booking     Booking          @relation(fields: [bookingId], references: [id])
   agent       Agent?           @relation(fields: [agentId], references: [id])
   sales       Sales?           @relation(fields: [salesId], references: [id])
+  employee    Employee?        @relation(fields: [employeeId], references: [id])
+  payout      CommissionPayout? @relation(fields: [payoutId], references: [id])
   
   @@index([isDeleted])
+  @@index([payoutId])
   @@map("commissions")
 }
 
@@ -1654,6 +1672,8 @@ model Employee {
   attendances    EmployeeAttendance[]
   leaves         Leave[]
   payrolls       Payroll[]
+  commissions    Commission[]
+  payouts        CommissionPayout[]
   
   @@unique([tenantId, nip])
   @@index([isDeleted])
@@ -1817,19 +1837,31 @@ model Stock {
 
 model StockMovement {
   id          String       @id @default(cuid())
+  tenantId    String?
   productId   String
-  warehouseId String
+  warehouseId String?
+  scheduleId  String?
   type        MovementType
   quantity    Int
+  stockBefore Int          @default(0)
+  stockAfter  Int          @default(0)
+  reason      String?
   reference   String?
-  description String?
+  notes       String?
   createdBy   String
   
+  isDeleted   Boolean      @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
   createdAt   DateTime     @default(now())
   
   product     Product      @relation(fields: [productId], references: [id])
-  warehouse   Warehouse    @relation(fields: [warehouseId], references: [id])
+  warehouse   Warehouse?   @relation(fields: [warehouseId], references: [id])
+  schedule    Schedule?    @relation(fields: [scheduleId], references: [id])
+  createdByUser User?      @relation(fields: [createdBy], references: [id])
   
+  @@index([productId])
+  @@index([scheduleId])
   @@map("stock_movements")
 }
 
@@ -2432,4 +2464,156 @@ model Setting {
   
   @@unique([tenantId, key])
   @@map("settings")
+}
+
+// ============================================================
+// EXPENSE TRACKING
+// ============================================================
+
+model Expense {
+  id          String        @id @default(cuid())
+  tenantId    String
+  description String
+  amount      Decimal       @db.Decimal(15, 2)
+  category    ExpenseCategory
+  vendor      String?
+  reference   String?
+  expenseDate DateTime      @default(now())
+  scheduleId  String?
+  notes       String?       @db.Text
+  attachments Json?
+  status      ExpenseStatus @default(PENDING)
+  approvedBy  String?
+  approvedAt  DateTime?
+  
+  isDeleted   Boolean       @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  schedule        Schedule? @relation(fields: [scheduleId], references: [id])
+  approvedByUser  User?     @relation("ExpenseApprovedBy", fields: [approvedBy], references: [id])
+  
+  @@index([tenantId, category])
+  @@index([scheduleId])
+  @@map("expenses")
+}
+
+enum ExpenseCategory {
+  ACCOMMODATION
+  TRANSPORTATION
+  MEALS
+  GUIDE_FEE
+  VISA
+  INSURANCE
+  EQUIPMENT
+  MARKETING
+  OFFICE
+  SALARY
+  OTHER
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+// ============================================================
+// COMMISSION PAYOUT
+// ============================================================
+
+model CommissionPayout {
+  id              String        @id @default(cuid())
+  tenantId        String
+  code            String        @unique
+  agentId         String?
+  employeeId      String?
+  totalAmount     Decimal       @db.Decimal(15, 2)
+  commissionCount Int           @default(0)
+  paymentMethod   PaymentMethod @default(BANK_TRANSFER)
+  bankName        String?
+  bankAccount     String?
+  accountName     String?
+  reference       String?
+  notes           String?       @db.Text
+  status          PayoutStatus  @default(PENDING)
+  payoutDate      DateTime?
+  processedBy     String?
+  processedAt     DateTime?
+  
+  isDeleted       Boolean       @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  agent           Agent?        @relation(fields: [agentId], references: [id])
+  employee        Employee?     @relation(fields: [employeeId], references: [id])
+  processedByUser User?         @relation("PayoutProcessedBy", fields: [processedBy], references: [id])
+  commissions     Commission[]
+  
+  @@index([agentId])
+  @@index([employeeId])
+  @@map("commission_payouts")
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  CANCELLED
+}
+
+// ============================================================
+// REFERRAL SYSTEM
+// ============================================================
+
+model Referral {
+  id            String         @id @default(cuid())
+  tenantId      String
+  code          String         @unique
+  referrerId    String
+  referredId    String?
+  referredEmail String?
+  referredPhone String?
+  referredName  String?
+  bookingId     String?        @unique
+  rewardType    RewardType     @default(FIXED)
+  rewardValue   Decimal        @db.Decimal(15, 2) @default(0)
+  rewardAmount  Decimal?       @db.Decimal(15, 2)
+  status        ReferralStatus @default(PENDING)
+  notes         String?        @db.Text
+  convertedAt   DateTime?
+  rewardedAt    DateTime?
+  
+  isDeleted     Boolean        @default(false)
+  deletedAt     DateTime?
+  deletedBy     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  referrer      Customer       @relation("Referrer", fields: [referrerId], references: [id])
+  referred      Customer?      @relation("Referred", fields: [referredId], references: [id])
+  booking       Booking?       @relation(fields: [bookingId], references: [id])
+  
+  @@index([referrerId])
+  @@index([referredId])
+  @@map("referrals")
+}
+
+enum RewardType {
+  PERCENTAGE
+  FIXED
+  POINTS
+}
+
+enum ReferralStatus {
+  PENDING     // Invitation sent but not registered
+  REGISTERED  // Referred person registered
+  CONVERTED   // Referred person made a booking
+  REWARDED    // Reward given to referrer
+  EXPIRED     // Referral expired
 }
