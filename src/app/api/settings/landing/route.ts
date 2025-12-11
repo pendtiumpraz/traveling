@@ -103,7 +103,7 @@ const defaultLandingContent = {
         name: "H. Ahmad Sudirman",
         location: "Jakarta",
         image:
-          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80",
+          "https://images.unsplash.com/photo-1618077360395-f3068be8e001?w=150&q=80",
         text: "Alhamdulillah perjalanan umrah bersama travel ini sangat nyaman. Pembimbing sangat sabar dan hotel sangat dekat dengan Masjidil Haram. Proses visa juga cepat dan mudah.",
         rating: 5,
       },
@@ -111,15 +111,15 @@ const defaultLandingContent = {
         name: "Hj. Siti Aminah",
         location: "Surabaya",
         image:
-          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&q=80",
+          "https://images.unsplash.com/photo-1609241728358-53a5813c9d51?w=150&q=80",
         text: "Pelayanan luar biasa dari awal pendaftaran hingga pulang. Makanan enak, hotel bersih, dan pembimbing sangat membantu. Insya Allah akan berangkat lagi bersama keluarga.",
         rating: 5,
       },
       {
-        name: "Ir. Bambang Wijaya",
+        name: "H. Bambang Wijaya",
         location: "Bandung",
         image:
-          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&q=80",
+          "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&q=80",
         text: "Harga sangat worth it dengan fasilitas yang didapat. Tim sangat responsif dan profesional. Smartwatch tracking sangat membantu keluarga di rumah.",
         rating: 5,
       },
@@ -139,9 +139,9 @@ const defaultLandingContent = {
     "https://images.unsplash.com/photo-1564769625905-50e93615e769?w=600&q=80",
     "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=600&q=80",
     "https://images.unsplash.com/photo-1519817650390-64a93db51149?w=600&q=80",
-    "https://images.unsplash.com/photo-1466442929976-97f336a657be?w=600&q=80",
-    "https://images.unsplash.com/photo-1518553552235-7b6f7920c22a?w=600&q=80",
-    "https://images.unsplash.com/photo-1565552645632-d725f8bfc50a?w=600&q=80",
+    "https://images.unsplash.com/photo-1604608672516-f1b9b1d37076?w=600&q=80",
+    "https://images.unsplash.com/photo-1590076215667-875d4ef2d7de?w=600&q=80",
+    "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?w=600&q=80",
   ],
   contact: {
     phone: "+62 812-3456-7890",
