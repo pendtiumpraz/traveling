@@ -40,7 +40,18 @@ interface LandingContent {
   };
   stats: Array<{ value: string; label: string }>;
   features: Array<{ icon: string; title: string; description: string }>;
-  packages: { title: string; subtitle: string };
+  packages: {
+    title: string;
+    subtitle: string;
+    items?: Array<{
+      name: string;
+      price: string;
+      duration: string;
+      hotel: string;
+      airline: string;
+      image: string;
+    }>;
+  };
   testimonials: {
     title: string;
     subtitle: string;
@@ -257,8 +268,73 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Packages Section */}
+      <section id="packages" className="bg-gray-50 py-24 px-4">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center">
+            <span className="text-emerald-600 font-semibold">Paket Umrah</span>
+            <h2 className="mt-2 text-4xl font-bold text-gray-900">
+              {content.packages.title}
+            </h2>
+            <p className="mt-4 text-lg text-gray-600">
+              {content.packages.subtitle}
+            </p>
+          </div>
+          {content.packages.items && content.packages.items.length > 0 && (
+            <div className="mt-16 grid gap-8 md:grid-cols-3">
+              {content.packages.items.map((pkg, i) => (
+                <div
+                  key={i}
+                  className="group overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src={pkg.image}
+                      alt={pkg.name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <p className="text-2xl font-bold text-white">
+                        {pkg.price}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {pkg.name}
+                    </h3>
+                    <div className="mt-4 space-y-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-emerald-600" />
+                        <span>{pkg.duration}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Hotel className="h-4 w-4 text-emerald-600" />
+                        <span>{pkg.hotel}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Plane className="h-4 w-4 text-emerald-600" />
+                        <span>{pkg.airline}</span>
+                      </div>
+                    </div>
+                    <Link
+                      href={`https://wa.me/${content.contact.whatsapp}?text=Halo, saya tertarik dengan paket ${pkg.name}`}
+                      className="mt-6 block w-full rounded-xl bg-emerald-600 py-3 text-center font-semibold text-white hover:bg-emerald-700 transition-colors"
+                    >
+                      Pesan Sekarang
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Gallery Section */}
-      <section className="bg-gray-50 py-24 px-4">
+      <section className="py-24 px-4">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
             <span className="text-emerald-600 font-semibold">Galeri</span>
