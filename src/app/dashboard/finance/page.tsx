@@ -59,6 +59,14 @@ export default function FinancePage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setPage(0);
+  };
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -118,9 +126,18 @@ export default function FinancePage() {
 
   const columns: Column<Payment>[] = [
     {
+      key: "no",
+      header: "No",
+      width: "60px",
+      render: (_, index) => (
+        <span className="text-sm text-gray-500">{page * pageSize + index + 1}</span>
+      ),
+    },
+    {
       key: "paymentCode",
       header: "Code",
       width: "120px",
+      sortable: true,
       render: (row) => (
         <span className="font-mono text-xs font-medium text-primary">
           {row.paymentCode}
@@ -143,6 +160,7 @@ export default function FinancePage() {
       key: "amount",
       header: "Amount",
       width: "140px",
+      sortable: true,
       render: (row) => (
         <span className="font-medium">
           {formatCurrency(Number(row.amount))}
@@ -153,6 +171,7 @@ export default function FinancePage() {
       key: "method",
       header: "Method",
       width: "120px",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="text-sm">{row.method.replace("_", " ")}</p>
@@ -164,14 +183,16 @@ export default function FinancePage() {
       key: "status",
       header: "Status",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <Badge variant={statusColors[row.status]}>{row.status}</Badge>
       ),
     },
     {
-      key: "date",
+      key: "createdAt",
       header: "Date",
       width: "100px",
+      sortable: true,
       render: (row) =>
         formatDate(row.createdAt, { day: "numeric", month: "short" }),
     },
@@ -265,6 +286,9 @@ export default function FinancePage() {
         isLoading={isLoading}
         addLabel="Record Payment"
         onAdd={handleCreate}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

@@ -36,6 +36,14 @@ export default function MarketingPage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setPage(0);
+  };
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -91,9 +99,18 @@ export default function MarketingPage() {
 
   const columns: Column<Voucher>[] = [
     {
+      key: "no",
+      header: "No",
+      width: "60px",
+      render: (_, index) => (
+        <span className="text-sm text-gray-500">{page * pageSize + index + 1}</span>
+      ),
+    },
+    {
       key: "code",
       header: "Code",
       width: "120px",
+      sortable: true,
       render: (row) => (
         <span className="font-mono text-sm font-medium text-primary">
           {row.code}
@@ -103,6 +120,7 @@ export default function MarketingPage() {
     {
       key: "name",
       header: "Voucher",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="font-medium text-gray-900">{row.name}</p>
@@ -116,9 +134,10 @@ export default function MarketingPage() {
       ),
     },
     {
-      key: "usage",
+      key: "used",
       header: "Usage",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <span>
           {row.used} / {row.quota || "∞"}
@@ -126,8 +145,9 @@ export default function MarketingPage() {
       ),
     },
     {
-      key: "period",
+      key: "startDate",
       header: "Valid Period",
+      sortable: true,
       render: (row) => (
         <span className="text-sm">
           {formatDate(row.startDate, { day: "numeric", month: "short" })} -{" "}
@@ -136,9 +156,10 @@ export default function MarketingPage() {
       ),
     },
     {
-      key: "status",
+      key: "isActive",
       header: "Status",
       width: "90px",
+      sortable: true,
       render: (row) => {
         const now = new Date();
         const end = new Date(row.endDate);
@@ -247,6 +268,9 @@ export default function MarketingPage() {
         isLoading={isLoading}
         addLabel="Create Voucher"
         onAdd={handleCreate}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

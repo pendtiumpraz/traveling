@@ -38,6 +38,14 @@ export default function InventoryPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setPage(0);
+  };
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -99,14 +107,24 @@ export default function InventoryPage() {
 
   const columns: Column<Product>[] = [
     {
+      key: "no",
+      header: "No",
+      width: "60px",
+      render: (_, index) => (
+        <span className="text-sm text-gray-500">{page * pageSize + index + 1}</span>
+      ),
+    },
+    {
       key: "code",
       header: "Code",
       width: "100px",
+      sortable: true,
       render: (row) => <span className="font-mono text-xs">{row.code}</span>,
     },
     {
       key: "name",
       header: "Product",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="font-medium text-gray-900">{row.name}</p>
@@ -120,9 +138,10 @@ export default function InventoryPage() {
       width: "80px",
     },
     {
-      key: "stock",
+      key: "currentStock",
       header: "Stock",
       width: "100px",
+      sortable: true,
       render: (row) => {
         const qty = row.stocks.reduce((s, st) => s + st.quantity, 0);
         const isLow = qty < row.minStock;
@@ -140,19 +159,22 @@ export default function InventoryPage() {
       key: "buyPrice",
       header: "Buy Price",
       width: "120px",
+      sortable: true,
       render: (row) => formatCurrency(Number(row.buyPrice)),
     },
     {
       key: "sellPrice",
       header: "Sell Price",
       width: "120px",
+      sortable: true,
       render: (row) =>
         row.sellPrice ? formatCurrency(Number(row.sellPrice)) : "-",
     },
     {
-      key: "status",
+      key: "isActive",
       header: "Status",
       width: "90px",
+      sortable: true,
       render: (row) => (
         <Badge variant={row.isActive ? "success" : "secondary"}>
           {row.isActive ? "Active" : "Inactive"}
@@ -235,6 +257,9 @@ export default function InventoryPage() {
         onSearch={setSearch}
         addLabel="Add Product"
         onAdd={handleCreate}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

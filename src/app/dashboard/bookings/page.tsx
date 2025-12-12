@@ -240,6 +240,14 @@ export default function BookingsPage() {
       ),
     },
     {
+      key: "no",
+      header: "No",
+      width: "60px",
+      render: (_, index) => (
+        <span className="text-sm text-gray-500">{page * pageSize + index + 1}</span>
+      ),
+    },
+    {
       key: "bookingCode",
       header: "Booking",
       width: "120px",

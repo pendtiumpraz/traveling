@@ -196,6 +196,14 @@ export default function SchedulesPage() {
       ),
     },
     {
+      key: "no",
+      header: "No",
+      width: "60px",
+      render: (_, index) => (
+        <span className="text-sm text-gray-500">{page * pageSize + index + 1}</span>
+      ),
+    },
+    {
       key: "package",
       header: "Package",
       render: (row) => (

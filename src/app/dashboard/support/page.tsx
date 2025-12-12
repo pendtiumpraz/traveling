@@ -82,6 +82,8 @@ export default function SupportPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -98,6 +100,8 @@ export default function SupportPage() {
         page: String(page + 1),
         limit: String(pageSize),
         ...(search && { search }),
+        sortBy,
+        sortOrder,
       });
 
       const res = await fetch(`/api/tickets?${params}`);
@@ -112,7 +116,13 @@ export default function SupportPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize, search]);
+  }, [page, pageSize, search, sortBy, sortOrder]);
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setPage(0);
+  };
 
   useEffect(() => {
     fetchTickets();
@@ -188,9 +198,18 @@ export default function SupportPage() {
 
   const columns: Column<Ticket>[] = [
     {
+      key: "no",
+      header: "No",
+      width: "60px",
+      render: (_, index) => (
+        <span className="text-sm text-gray-500">{page * pageSize + index + 1}</span>
+      ),
+    },
+    {
       key: "ticketNo",
       header: "Ticket",
       width: "130px",
+      sortable: true,
       render: (row) => (
         <span className="font-mono text-sm font-medium text-primary">
           {row.ticketNo}
@@ -200,6 +219,7 @@ export default function SupportPage() {
     {
       key: "subject",
       header: "Subject",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="font-medium text-gray-900">{row.subject}</p>
@@ -221,6 +241,7 @@ export default function SupportPage() {
       key: "priority",
       header: "Priority",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <Badge variant={priorityColors[row.priority]}>{row.priority}</Badge>
       ),
@@ -229,6 +250,7 @@ export default function SupportPage() {
       key: "status",
       header: "Status",
       width: "120px",
+      sortable: true,
       render: (row) => (
         <Badge variant={statusColors[row.status]}>
           {row.status.replace("_", " ")}
@@ -243,9 +265,10 @@ export default function SupportPage() {
         row.assignedTo || <span className="text-gray-400">Unassigned</span>,
     },
     {
-      key: "updated",
+      key: "updatedAt",
       header: "Updated",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <span className="text-sm text-gray-500">
           {formatDate(row.updatedAt, { day: "numeric", month: "short" })}
@@ -326,6 +349,9 @@ export default function SupportPage() {
         isLoading={isLoading}
         searchPlaceholder="Search tickets..."
         onSearch={setSearch}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

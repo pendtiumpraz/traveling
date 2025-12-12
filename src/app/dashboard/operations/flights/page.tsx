@@ -64,6 +64,14 @@ export default function FlightsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setPage(0);
+  };
 
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -184,8 +192,17 @@ export default function FlightsPage() {
 
   const columns: Column<Flight>[] = [
     {
+      key: "no",
+      header: "No",
+      width: "60px",
+      render: (_, index) => (
+        <span className="text-sm text-gray-500">{page * pageSize + index + 1}</span>
+      ),
+    },
+    {
       key: "flightNumber",
       header: "Flight",
+      sortable: true,
       render: (row) => (
         <div className="flex items-center gap-2">
           {row.airline.logo ? (
@@ -224,6 +241,7 @@ export default function FlightsPage() {
     {
       key: "date",
       header: "Date",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="font-medium">
@@ -297,6 +315,9 @@ export default function FlightsPage() {
         onSearch={setSearch}
         addLabel="Add Flight"
         onAdd={handleAdd}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

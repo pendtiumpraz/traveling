@@ -38,6 +38,14 @@ export default function OperationsPage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState("departureDate");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setPage(0);
+  };
 
   const fetchManifests = useCallback(async () => {
     setIsLoading(true);
@@ -63,9 +71,18 @@ export default function OperationsPage() {
 
   const columns: Column<Manifest>[] = [
     {
+      key: "no",
+      header: "No",
+      width: "60px",
+      render: (_, index) => (
+        <span className="text-sm text-gray-500">{page * pageSize + index + 1}</span>
+      ),
+    },
+    {
       key: "code",
       header: "Code",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <span className="font-mono text-xs font-medium">{row.code}</span>
       ),
@@ -73,6 +90,7 @@ export default function OperationsPage() {
     {
       key: "name",
       header: "Manifest",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="font-medium text-gray-900">{row.name}</p>
@@ -83,9 +101,10 @@ export default function OperationsPage() {
       ),
     },
     {
-      key: "departure",
+      key: "departureDate",
       header: "Departure",
       width: "120px",
+      sortable: true,
       render: (row) =>
         formatDate(row.departureDate, {
           day: "numeric",
@@ -114,6 +133,7 @@ export default function OperationsPage() {
       key: "status",
       header: "Status",
       width: "110px",
+      sortable: true,
       render: (row) => (
         <Badge variant={statusColors[row.status]}>{row.status}</Badge>
       ),
@@ -199,6 +219,9 @@ export default function OperationsPage() {
         isLoading={isLoading}
         addLabel="Create Manifest"
         onAdd={() => {}}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

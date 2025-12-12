@@ -45,6 +45,14 @@ export default function HRISPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("joinDate");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setPage(0);
+  };
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -102,14 +110,24 @@ export default function HRISPage() {
 
   const columns: Column<Employee>[] = [
     {
+      key: "no",
+      header: "No",
+      width: "60px",
+      render: (_, index) => (
+        <span className="text-sm text-gray-500">{page * pageSize + index + 1}</span>
+      ),
+    },
+    {
       key: "nip",
       header: "NIP",
       width: "100px",
+      sortable: true,
       render: (row) => <span className="font-mono text-xs">{row.nip}</span>,
     },
     {
       key: "name",
       header: "Name",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="font-medium text-gray-900">{row.name}</p>
@@ -124,6 +142,7 @@ export default function HRISPage() {
     {
       key: "position",
       header: "Position",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="text-sm">{row.position}</p>
@@ -141,6 +160,7 @@ export default function HRISPage() {
       key: "joinDate",
       header: "Join Date",
       width: "110px",
+      sortable: true,
       render: (row) =>
         formatDate(row.joinDate, {
           day: "numeric",
@@ -152,6 +172,7 @@ export default function HRISPage() {
       key: "status",
       header: "Status",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <Badge variant={statusColors[row.status]}>{row.status}</Badge>
       ),
@@ -238,6 +259,9 @@ export default function HRISPage() {
         onSearch={setSearch}
         addLabel="Add Employee"
         onAdd={handleCreate}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

@@ -194,6 +194,14 @@ export default function AgentsPage() {
       ),
     },
     {
+      key: "no",
+      header: "No",
+      width: "60px",
+      render: (_, index) => (
+        <span className="text-sm text-gray-500">{page * pageSize + index + 1}</span>
+      ),
+    },
+    {
       key: "code",
       header: "Code",
       width: "100px",
