@@ -28,20 +28,47 @@ Available tables and their key fields:
 - Ticket: id, ticketNo, customerId, subject, category, priority, status (OPEN/IN_PROGRESS/RESOLVED/CLOSED)
 `;
 
+// Safe where clause builder
+function buildWhereClause(params: Record<string, unknown>, tenantFilter: Record<string, unknown>) {
+  try {
+    const where = { ...tenantFilter };
+    if (params.where && typeof params.where === 'object') {
+      Object.entries(params.where as Record<string, unknown>).forEach(([key, value]) => {
+        // Skip invalid values
+        if (value === undefined || value === null) return;
+        // Handle date strings
+        if (typeof value === 'object' && value !== null) {
+          const dateObj = value as Record<string, unknown>;
+          if (dateObj.gte && typeof dateObj.gte === 'string') {
+            dateObj.gte = new Date(dateObj.gte as string);
+          }
+          if (dateObj.lte && typeof dateObj.lte === 'string') {
+            dateObj.lte = new Date(dateObj.lte as string);
+          }
+        }
+        (where as Record<string, unknown>)[key] = value;
+      });
+    }
+    return where;
+  } catch {
+    return tenantFilter;
+  }
+}
+
 // Helper to generate Prisma query from AI response
 async function executeQuery(
   queryType: string,
   params: Record<string, unknown>,
 ) {
   const tenantFilter = { isDeleted: false };
+  const safeWhere = buildWhereClause(params, tenantFilter);
+  const safeOrderBy = (params.orderBy as Record<string, string>) || { createdAt: "desc" };
+  const safeTake = Math.min((params.take as number) || 10, 50); // Max 50 results
 
   switch (queryType) {
     case "customer_list":
       return prisma.customer.findMany({
-        where: {
-          ...tenantFilter,
-          ...(params.where as Record<string, unknown>),
-        },
+        where: safeWhere,
         select: {
           id: true,
           code: true,
@@ -52,26 +79,16 @@ async function executeQuery(
           createdAt: true,
           _count: { select: { bookings: true } },
         },
-        orderBy: (params.orderBy as Record<string, string>) || {
-          createdAt: "desc",
-        },
-        take: (params.take as number) || 10,
+        orderBy: safeOrderBy,
+        take: safeTake,
       });
 
     case "customer_count":
-      return prisma.customer.count({
-        where: {
-          ...tenantFilter,
-          ...(params.where as Record<string, unknown>),
-        },
-      });
+      return prisma.customer.count({ where: safeWhere });
 
     case "booking_list":
       return prisma.booking.findMany({
-        where: {
-          ...tenantFilter,
-          ...(params.where as Record<string, unknown>),
-        },
+        where: safeWhere,
         select: {
           id: true,
           bookingCode: true,
@@ -85,50 +102,44 @@ async function executeQuery(
           package: { select: { name: true, type: true } },
           schedule: { select: { departureDate: true } },
         },
-        orderBy: (params.orderBy as Record<string, string>) || {
-          createdAt: "desc",
-        },
-        take: (params.take as number) || 10,
+        orderBy: safeOrderBy,
+        take: safeTake,
       });
 
     case "booking_count":
-      return prisma.booking.count({
-        where: {
-          ...tenantFilter,
-          ...(params.where as Record<string, unknown>),
-        },
-      });
+      return prisma.booking.count({ where: safeWhere });
 
     case "booking_stats":
-      const groupByField = (params.groupBy as string) || "status";
-      const bookingStats = await prisma.booking.groupBy({
-        by: [groupByField] as ["status"] | ["businessType"] | ["paymentStatus"],
-        where: {
-          ...tenantFilter,
-          ...(params.where as Record<string, unknown>),
-        },
-        _count: true,
-        _sum: { totalPrice: true },
-      });
-      return bookingStats;
+      // Simplified stats - count by status
+      const [pending, confirmed, completed, cancelled] = await Promise.all([
+        prisma.booking.count({ where: { ...tenantFilter, status: "PENDING" } }),
+        prisma.booking.count({ where: { ...tenantFilter, status: "CONFIRMED" } }),
+        prisma.booking.count({ where: { ...tenantFilter, status: "COMPLETED" } }),
+        prisma.booking.count({ where: { ...tenantFilter, status: "CANCELLED" } }),
+      ]);
+      return {
+        pending,
+        confirmed, 
+        completed,
+        cancelled,
+        total: pending + confirmed + completed + cancelled,
+      };
 
     case "revenue_total":
-      return prisma.payment.aggregate({
+      const revenueResult = await prisma.payment.aggregate({
         where: {
           isDeleted: false,
           status: "SUCCESS",
-          ...(params.where as Record<string, unknown>),
         },
         _sum: { amountInBase: true },
       });
+      return {
+        totalRevenue: revenueResult._sum.amountInBase || 0,
+      };
 
     case "package_list":
       return prisma.package.findMany({
-        where: {
-          ...tenantFilter,
-          isActive: true,
-          ...(params.where as Record<string, unknown>),
-        },
+        where: { ...safeWhere, isActive: true },
         select: {
           id: true,
           code: true,
@@ -139,18 +150,13 @@ async function executeQuery(
           isFeatured: true,
           _count: { select: { schedules: true, bookings: true } },
         },
-        orderBy: (params.orderBy as Record<string, string>) || {
-          createdAt: "desc",
-        },
-        take: (params.take as number) || 10,
+        orderBy: safeOrderBy,
+        take: safeTake,
       });
 
     case "schedule_list":
       return prisma.schedule.findMany({
-        where: {
-          ...tenantFilter,
-          ...(params.where as Record<string, unknown>),
-        },
+        where: safeWhere,
         select: {
           id: true,
           departureDate: true,
@@ -161,18 +167,13 @@ async function executeQuery(
           package: { select: { name: true, type: true } },
           _count: { select: { bookings: true } },
         },
-        orderBy: (params.orderBy as Record<string, string>) || {
-          departureDate: "asc",
-        },
-        take: (params.take as number) || 10,
+        orderBy: { departureDate: "asc" },
+        take: safeTake,
       });
 
     case "employee_list":
       return prisma.employee.findMany({
-        where: {
-          ...tenantFilter,
-          ...(params.where as Record<string, unknown>),
-        },
+        where: safeWhere,
         select: {
           id: true,
           nip: true,
@@ -181,18 +182,14 @@ async function executeQuery(
           department: true,
           status: true,
           isTourLeader: true,
-          baseSalary: true,
         },
-        orderBy: (params.orderBy as Record<string, string>) || { name: "asc" },
-        take: (params.take as number) || 10,
+        orderBy: { name: "asc" },
+        take: safeTake,
       });
 
     case "agent_list":
       return prisma.agent.findMany({
-        where: {
-          ...tenantFilter,
-          ...(params.where as Record<string, unknown>),
-        },
+        where: safeWhere,
         select: {
           id: true,
           code: true,
@@ -202,16 +199,13 @@ async function executeQuery(
           phone: true,
           _count: { select: { bookings: true } },
         },
-        orderBy: (params.orderBy as Record<string, string>) || { name: "asc" },
-        take: (params.take as number) || 10,
+        orderBy: { name: "asc" },
+        take: safeTake,
       });
 
     case "ticket_list":
       return prisma.ticket.findMany({
-        where: {
-          ...tenantFilter,
-          ...(params.where as Record<string, unknown>),
-        },
+        where: safeWhere,
         select: {
           id: true,
           ticketNo: true,
@@ -222,18 +216,13 @@ async function executeQuery(
           createdAt: true,
           customer: { select: { fullName: true } },
         },
-        orderBy: (params.orderBy as Record<string, string>) || {
-          createdAt: "desc",
-        },
-        take: (params.take as number) || 10,
+        orderBy: { createdAt: "desc" },
+        take: safeTake,
       });
 
     case "product_list":
       return prisma.product.findMany({
-        where: {
-          ...tenantFilter,
-          ...(params.where as Record<string, unknown>),
-        },
+        where: safeWhere,
         select: {
           id: true,
           code: true,
@@ -242,14 +231,13 @@ async function executeQuery(
           buyPrice: true,
           sellPrice: true,
           minStock: true,
-          stocks: { select: { quantity: true } },
         },
-        orderBy: (params.orderBy as Record<string, string>) || { name: "asc" },
-        take: (params.take as number) || 10,
+        orderBy: { name: "asc" },
+        take: safeTake,
       });
 
     case "summary_dashboard":
-      const [customers, bookings, revenue, schedules] = await Promise.all([
+      const [totalCustomers, totalBookings, totalRevenue, upcomingSchedules] = await Promise.all([
         prisma.customer.count({ where: tenantFilter }),
         prisma.booking.count({ where: tenantFilter }),
         prisma.payment.aggregate({
@@ -261,14 +249,14 @@ async function executeQuery(
         }),
       ]);
       return {
-        customers,
-        bookings,
-        revenue: revenue._sum.amountInBase,
-        upcomingSchedules: schedules,
+        totalCustomers,
+        totalBookings,
+        totalRevenue: totalRevenue._sum.amountInBase || 0,
+        upcomingSchedules,
       };
 
     default:
-      throw new Error(`Unknown query type: ${queryType}`);
+      return { message: `Query type "${queryType}" tidak dikenali. Silakan coba pertanyaan lain.` };
   }
 }
 
