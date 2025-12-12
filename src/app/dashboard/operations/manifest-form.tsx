@@ -8,8 +8,14 @@ interface Schedule {
   id: string;
   departureDate: string;
   returnDate: string;
-  package: { name: string; type: string };
+  package: { name: string | { id?: string; en?: string }; type: string };
   availableQuota: number;
+}
+
+function getPackageName(name: string | { id?: string; en?: string } | undefined): string {
+  if (!name) return "Package";
+  if (typeof name === "string") return name;
+  return name.id || name.en || "Package";
 }
 
 interface ManifestFormProps {
@@ -95,7 +101,7 @@ export function ManifestForm({ onSuccess, onCancel }: ManifestFormProps) {
                 ...form,
                 scheduleId: e.target.value,
                 name: schedule
-                  ? `${schedule.package.name} - ${new Date(schedule.departureDate).toLocaleDateString("id-ID")}`
+                  ? `${getPackageName(schedule.package.name)} - ${new Date(schedule.departureDate).toLocaleDateString("id-ID")}`
                   : "",
               });
             }}
@@ -105,7 +111,7 @@ export function ManifestForm({ onSuccess, onCancel }: ManifestFormProps) {
             <option value="">Select a schedule</option>
             {schedules.map((schedule) => (
               <option key={schedule.id} value={schedule.id}>
-                {schedule.package.name} - {new Date(schedule.departureDate).toLocaleDateString("id-ID")} ({schedule.availableQuota} seats)
+                {getPackageName(schedule.package.name)} - {new Date(schedule.departureDate).toLocaleDateString("id-ID")} ({schedule.availableQuota} seats)
               </option>
             ))}
           </select>
@@ -131,7 +137,7 @@ export function ManifestForm({ onSuccess, onCancel }: ManifestFormProps) {
 
       {selectedSchedule && (
         <div className="bg-gray-50 rounded-lg p-3 text-sm">
-          <p className="font-medium">{selectedSchedule.package.name}</p>
+          <p className="font-medium">{getPackageName(selectedSchedule.package.name)}</p>
           <p className="text-gray-500">
             {new Date(selectedSchedule.departureDate).toLocaleDateString("id-ID")} - {new Date(selectedSchedule.returnDate).toLocaleDateString("id-ID")}
           </p>
