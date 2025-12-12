@@ -1,11 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-// GET /api/debug/reset-passwords - Reset all demo user passwords
-export async function GET() {
-  // Only allow in development
-  if (process.env.NODE_ENV === "production") {
-    return Response.json({ error: "Not available in production" }, { status: 403 });
+// GET /api/debug/reset-passwords?key=xxx - Reset all demo user passwords
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const key = searchParams.get("key");
+  
+  // Require secret key (use AUTH_SECRET or default)
+  const secretKey = process.env.AUTH_SECRET?.slice(0, 16) || "debug123";
+  if (key !== secretKey) {
+    return Response.json({ error: "Invalid key. Use ?key=YOUR_AUTH_SECRET_FIRST_16_CHARS" }, { status: 403 });
   }
 
   const users = [

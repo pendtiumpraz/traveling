@@ -2,14 +2,17 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-// GET /api/debug/check-user?email=superadmin@demo.com&password=superadmin123
+// GET /api/debug/check-user?key=xxx&email=superadmin@demo.com&password=superadmin123
 export async function GET(request: NextRequest) {
-  // Only allow in development
-  if (process.env.NODE_ENV === "production") {
-    return Response.json({ error: "Not available in production" }, { status: 403 });
+  const { searchParams } = new URL(request.url);
+  const key = searchParams.get("key");
+  
+  // Require secret key
+  const secretKey = process.env.AUTH_SECRET?.slice(0, 16) || "debug123";
+  if (key !== secretKey) {
+    return Response.json({ error: "Invalid key" }, { status: 403 });
   }
 
-  const { searchParams } = new URL(request.url);
   const email = searchParams.get("email");
   const password = searchParams.get("password");
 
