@@ -2,14 +2,16 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 // GET /api/debug/reset-passwords?key=xxx - Reset all demo user passwords
+// TEMPORARY: Also accepts ?key=resetdemo123 for easy access
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const key = searchParams.get("key");
   
-  // Require secret key (use AUTH_SECRET or default)
+  // Require secret key (use AUTH_SECRET or fallback)
   const secretKey = process.env.AUTH_SECRET?.slice(0, 16) || "debug123";
-  if (key !== secretKey) {
-    return Response.json({ error: "Invalid key. Use ?key=YOUR_AUTH_SECRET_FIRST_16_CHARS" }, { status: 403 });
+  const tempKey = "resetdemo123"; // temporary easy key
+  if (key !== secretKey && key !== tempKey) {
+    return Response.json({ error: "Invalid key. Use ?key=resetdemo123" }, { status: 403 });
   }
 
   const users = [
