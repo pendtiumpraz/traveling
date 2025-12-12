@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { auth } from "@/lib/auth";
 
 // Multi-tenant configuration
 const TENANT_MODE = process.env.TENANT_MODE || "single";
@@ -144,7 +144,7 @@ const rolePathAccess: Record<string, string[]> = {
   CUSTOMER: ["/portal", "/api/portal"],
 };
 
-export async function middleware(request: NextRequest) {
+export default auth(async function middleware(request) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get("host") || "";
   
@@ -179,14 +179,11 @@ export async function middleware(request: NextRequest) {
     return createResponse(NextResponse.next());
   }
 
-  // Get token
-  const token = await getToken({
-    req: request,
-    secret: process.env.AUTH_SECRET,
-  });
+  // Get session from auth
+  const session = request.auth;
 
-  // No token - redirect to login
-  if (!token) {
+  // No session - redirect to login
+  if (!session) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
@@ -194,18 +191,18 @@ export async function middleware(request: NextRequest) {
 
   // Multi-tenant mode: verify user belongs to tenant
   if (TENANT_MODE === "multi" && subdomain) {
-    const tokenTenantSubdomain = token.tenantSubdomain as string | undefined;
+    const userTenantSubdomain = session.user?.tenantSubdomain;
     // If user's tenant doesn't match subdomain, redirect to their tenant or login
-    if (tokenTenantSubdomain && tokenTenantSubdomain !== subdomain) {
+    if (userTenantSubdomain && userTenantSubdomain !== subdomain) {
       // User is trying to access different tenant - redirect to their tenant
       const userTenantUrl = new URL(request.url);
-      userTenantUrl.hostname = `${tokenTenantSubdomain}.${TENANT_BASE_DOMAIN.split(":")[0]}`;
+      userTenantUrl.hostname = `${userTenantSubdomain}.${TENANT_BASE_DOMAIN.split(":")[0]}`;
       return NextResponse.redirect(userTenantUrl);
     }
   }
 
-  // Get user roles from token
-  const userRoles = (token.roles as string[]) || [];
+  // Get user roles from session
+  const userRoles = session.user?.roles || [];
 
   // If no roles, deny access
   if (userRoles.length === 0) {
@@ -238,7 +235,7 @@ export async function middleware(request: NextRequest) {
   }
 
   return createResponse(NextResponse.next());
-}
+});
 
 export const config = {
   matcher: [
