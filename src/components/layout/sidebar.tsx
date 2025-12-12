@@ -23,6 +23,7 @@ import {
   Boxes,
   Headphones,
   Sparkles,
+  HelpCircle,
 } from "lucide-react";
 
 // Role-based menu visibility (11 roles from requirements)
@@ -45,6 +46,7 @@ const ROLE_MENUS: Record<string, string[]> = {
     "reports",
     "ai-assistant",
     "settings",
+    "guide",
   ],
   ADMIN: [
     "dashboard",
@@ -63,26 +65,28 @@ const ROLE_MENUS: Record<string, string[]> = {
     "reports",
     "ai-assistant",
     "settings",
+    "guide",
   ],
 
   // Department-specific
-  FINANCE: ["dashboard", "finance", "reports", "ai-assistant"],
+  FINANCE: ["dashboard", "finance", "reports", "ai-assistant", "guide"],
   OPERASIONAL: [
     "dashboard",
     "operations",
     "schedules",
     "tracking",
     "ai-assistant",
+    "guide",
   ],
-  MARKETING: ["dashboard", "customers", "marketing", "reports", "ai-assistant"],
-  HRD: ["dashboard", "hris", "ai-assistant"],
-  INVENTORY: ["dashboard", "inventory", "ai-assistant"],
+  MARKETING: ["dashboard", "customers", "marketing", "reports", "ai-assistant", "guide"],
+  HRD: ["dashboard", "hris", "ai-assistant", "guide"],
+  INVENTORY: ["dashboard", "inventory", "ai-assistant", "guide"],
 
   // Field roles
-  TOUR_LEADER: ["dashboard", "operations", "tracking"],
+  TOUR_LEADER: ["dashboard", "operations", "tracking", "guide"],
 
   // External roles
-  AGENT: ["dashboard", "customers", "bookings", "packages", "schedules"],
+  AGENT: ["dashboard", "customers", "bookings", "packages", "schedules", "guide"],
   SALES: [
     "dashboard",
     "customers",
@@ -91,6 +95,7 @@ const ROLE_MENUS: Record<string, string[]> = {
     "schedules",
     "reports",
     "ai-assistant",
+    "guide",
   ],
 
   // Customer uses portal, not dashboard (no AI access)
@@ -189,6 +194,12 @@ const menuItems = [
     href: "/dashboard/settings",
     icon: Settings,
   },
+  {
+    key: "guide",
+    title: "User Guide",
+    href: "/dashboard/guide",
+    icon: HelpCircle,
+  },
 ];
 
 export function Sidebar() {
@@ -248,8 +259,12 @@ export function Sidebar() {
       <nav className="h-[calc(100vh-64px)] overflow-y-auto p-3">
         <ul className="space-y-1">
           {filteredMenuItems.map((item) => {
+            // Fix: Dashboard should only be active on exact match
+            // Other menus should be active on exact match OR when path starts with their href
             const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
 
             return (
