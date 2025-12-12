@@ -6,6 +6,8 @@ declare module "next-auth" {
     user: {
       id: string;
       tenantId?: string;
+      tenantSubdomain?: string;
+      tenantName?: string;
       roles?: string[];
       customerType?: string;
     } & DefaultSession["user"];
@@ -13,6 +15,8 @@ declare module "next-auth" {
 
   interface User extends DefaultUser {
     tenantId?: string;
+    tenantSubdomain?: string;
+    tenantName?: string;
     roles?: string[];
     customerType?: string;
   }
@@ -22,6 +26,8 @@ declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     id?: string;
     tenantId?: string;
+    tenantSubdomain?: string;
+    tenantName?: string;
     roles?: string[];
     customerType?: string;
   }

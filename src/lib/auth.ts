@@ -136,6 +136,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.tenantId = (user as { tenantId?: string }).tenantId;
         token.roles = (user as { roles?: string[] }).roles;
         token.customerType = (user as { customerType?: string }).customerType;
+        
+        // Fetch tenant subdomain for multi-tenant mode
+        if (token.tenantId) {
+          const tenant = await prisma.tenant.findUnique({
+            where: { id: token.tenantId as string },
+            select: { subdomain: true, name: true },
+          });
+          token.tenantSubdomain = tenant?.subdomain;
+          token.tenantName = tenant?.name;
+        }
       }
 
       if (trigger === "update" && session) {
@@ -149,6 +159,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.tenantId = token.tenantId as string;
+        session.user.tenantSubdomain = token.tenantSubdomain as string;
+        session.user.tenantName = token.tenantName as string;
         session.user.roles = token.roles as string[];
         session.user.customerType = token.customerType as string;
       }

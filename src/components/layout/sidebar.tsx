@@ -24,6 +24,7 @@ import {
   Headphones,
   Sparkles,
   HelpCircle,
+  Handshake,
 } from "lucide-react";
 
 // Role-based menu visibility (11 roles from requirements)
@@ -31,6 +32,7 @@ const ROLE_MENUS: Record<string, string[]> = {
   // Full access
   SUPER_ADMIN: [
     "dashboard",
+    "tenants",
     "customers",
     "packages",
     "schedules",
@@ -110,6 +112,12 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
+    key: "tenants",
+    title: "Tenants",
+    href: "/dashboard/tenants",
+    icon: Building2,
+  },
+  {
     key: "customers",
     title: "Customers",
     href: "/dashboard/customers",
@@ -167,7 +175,7 @@ const menuItems = [
     key: "agents",
     title: "Agents",
     href: "/dashboard/agents",
-    icon: Building2,
+    icon: Handshake,
   },
   { key: "hris", title: "HRIS", href: "/dashboard/hris", icon: UserCog },
   {
