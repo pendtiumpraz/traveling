@@ -17,8 +17,9 @@ import {
   SortOption,
 } from "@/components/ui/data-table-toolbar";
 import { TrashModal } from "@/components/ui/trash-modal";
-import { Eye, Edit, Trash2, Plus } from "lucide-react";
+import { Eye, Edit, Trash2, Plus, LayoutList, Kanban } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { BookingKanbanView } from "./kanban-view";
 
 interface Booking {
   id: string;
@@ -127,6 +128,7 @@ export default function BookingsPage() {
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
 
   // Trash modal
   const [isTrashOpen, setIsTrashOpen] = useState(false);
@@ -379,51 +381,86 @@ export default function BookingsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
           <p className="text-gray-500">Manage customer bookings</p>
         </div>
-        <Button onClick={handleAdd}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Booking
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* View Toggle */}
+          <div className="flex rounded-lg border overflow-hidden">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${
+                viewMode === "table"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <LayoutList className="h-4 w-4" />
+              Table
+            </button>
+            <button
+              onClick={() => setViewMode("kanban")}
+              className={`px-3 py-2 flex items-center gap-1.5 text-sm ${
+                viewMode === "kanban"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <Kanban className="h-4 w-4" />
+              Kanban
+            </button>
+          </div>
+          <Button onClick={handleAdd}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Booking
+          </Button>
+        </div>
       </div>
 
-      {/* Toolbar with filters */}
-      <DataTableToolbar
-        selectedIds={selectedIds}
-        onSelectAll={selectAll}
-        onClearSelection={clearSelection}
-        totalItems={total}
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search booking code, customer..."
-        filters={BOOKING_FILTERS}
-        filterValues={filterValues}
-        onFilterChange={handleFilterChange}
-        sortOptions={BOOKING_SORT_OPTIONS}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSortChange={handleSortChange}
-        modelName="booking"
-        onBulkDelete={fetchBookings}
-        onImportSuccess={fetchBookings}
-        onViewTrash={() => setIsTrashOpen(true)}
-      />
+      {/* Kanban View */}
+      {viewMode === "kanban" && <BookingKanbanView />}
 
-      <DataTable
-        columns={columns}
-        data={bookings}
-        isLoading={isLoading}
-        onRowClick={handleView}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSort={handleSortChange}
-        pagination={{
-          page,
-          pageSize,
-          total,
-          onPageChange: setPage,
-          onPageSizeChange: setPageSize,
-        }}
-        emptyMessage="No bookings found"
-      />
+      {/* Table View */}
+      {viewMode === "table" && (
+        <>
+          {/* Toolbar with filters */}
+          <DataTableToolbar
+            selectedIds={selectedIds}
+            onSelectAll={selectAll}
+            onClearSelection={clearSelection}
+            totalItems={total}
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search booking code, customer..."
+            filters={BOOKING_FILTERS}
+            filterValues={filterValues}
+            onFilterChange={handleFilterChange}
+            sortOptions={BOOKING_SORT_OPTIONS}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+            modelName="booking"
+            onBulkDelete={fetchBookings}
+            onImportSuccess={fetchBookings}
+            onViewTrash={() => setIsTrashOpen(true)}
+          />
+
+          <DataTable
+            columns={columns}
+            data={bookings}
+            isLoading={isLoading}
+            onRowClick={handleView}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSortChange}
+            pagination={{
+              page,
+              pageSize,
+              total,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            }}
+            emptyMessage="No bookings found"
+          />
+        </>
+      )}
 
       <SidebarModal
         isOpen={isModalOpen}

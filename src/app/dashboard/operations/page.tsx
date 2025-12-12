@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { DataTable, Column, Badge, Button, Card } from "@/components/ui";
-import { Eye, Users, Calendar, Plane } from "lucide-react";
+import { DataTable, Column, Badge, Button, Card, SidebarModal } from "@/components/ui";
+import { Eye, Users, Calendar, Plane, Plus, Edit, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
+import { ManifestForm } from "./manifest-form";
 
 interface Manifest {
   id: string;
@@ -40,11 +41,31 @@ export default function OperationsPage() {
   const [total, setTotal] = useState(0);
   const [sortBy, setSortBy] = useState("departureDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
     setSortBy(newSortBy);
     setSortOrder(newSortOrder);
     setPage(0);
+  };
+
+  const handleAdd = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    fetchManifests();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this manifest?")) return;
+    try {
+      const res = await fetch(`/api/manifests/${id}`, { method: "DELETE" });
+      if (res.ok) fetchManifests();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const fetchManifests = useCallback(async () => {
@@ -141,13 +162,23 @@ export default function OperationsPage() {
     {
       key: "actions",
       header: "",
-      width: "80px",
+      width: "120px",
       render: (row) => (
-        <Link href={`/dashboard/operations/${row.id}`}>
-          <Button variant="ghost" size="icon">
-            <Eye className="h-4 w-4" />
+        <div className="flex items-center gap-1">
+          <Link href={`/dashboard/operations/${row.id}`}>
+            <Button variant="ghost" size="icon">
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleDelete(row.id)}
+            className="text-red-600 hover:bg-red-50"
+          >
+            <Trash2 className="h-4 w-4" />
           </Button>
-        </Link>
+        </div>
       ),
     },
   ];
@@ -218,7 +249,7 @@ export default function OperationsPage() {
         data={manifests}
         isLoading={isLoading}
         addLabel="Create Manifest"
-        onAdd={() => {}}
+        onAdd={handleAdd}
         sortBy={sortBy}
         sortOrder={sortOrder}
         onSort={handleSortChange}
@@ -231,6 +262,18 @@ export default function OperationsPage() {
         }}
         emptyMessage="No manifests found"
       />
+
+      <SidebarModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Create Manifest"
+        size="md"
+      >
+        <ManifestForm
+          onSuccess={handleSuccess}
+          onCancel={() => setIsModalOpen(false)}
+        />
+      </SidebarModal>
     </div>
   );
 }

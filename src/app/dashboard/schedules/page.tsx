@@ -17,8 +17,9 @@ import {
   SortOption,
 } from "@/components/ui/data-table-toolbar";
 import { TrashModal } from "@/components/ui/trash-modal";
-import { Eye, Edit, Trash2, Users, Calendar, Plus } from "lucide-react";
+import { Eye, Edit, Trash2, Users, Calendar, Plus, CalendarDays, LayoutList } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import Link from "next/link";
 
 interface Schedule {
   id: string;
@@ -328,10 +329,25 @@ export default function SchedulesPage() {
           <h1 className="text-2xl font-bold text-gray-900">Schedules</h1>
           <p className="text-gray-500">Manage departure schedules</p>
         </div>
-        <Button onClick={handleAdd}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Schedule
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* View Toggle */}
+          <div className="flex rounded-lg border overflow-hidden">
+            <button className="px-3 py-2 flex items-center gap-1.5 text-sm bg-primary text-white">
+              <LayoutList className="h-4 w-4" />
+              Table
+            </button>
+            <Link href="/dashboard/schedules/calendar">
+              <button className="px-3 py-2 flex items-center gap-1.5 text-sm bg-white text-gray-600 hover:bg-gray-50">
+                <CalendarDays className="h-4 w-4" />
+                Calendar
+              </button>
+            </Link>
+          </div>
+          <Button onClick={handleAdd}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Schedule
+          </Button>
+        </div>
       </div>
 
       <DataTableToolbar
