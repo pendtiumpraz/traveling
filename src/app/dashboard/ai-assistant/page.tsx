@@ -474,74 +474,69 @@ export default function AIAssistantPage() {
   return (
     <div className="flex h-[calc(100vh-8rem)] gap-4">
       {/* Sidebar - Template Prompts */}
-      <div className="w-80 flex-shrink-0 overflow-y-auto">
-        <Card className="h-full">
-          <div className="p-4 border-b sticky top-0 bg-white z-10">
-            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-purple-500" />
-              Template Pertanyaan
-            </h2>
-            <p className="text-xs text-gray-500 mt-1">
-              Klik untuk langsung bertanya
-            </p>
-          </div>
-          
-          <div className="p-2">
-            {TEMPLATE_CATEGORIES.map((category) => {
-              const Icon = category.icon;
-              const isExpanded = expandedCategory === category.id;
-              
-              return (
-                <div key={category.id} className="mb-1">
-                  <button
-                    onClick={() => setExpandedCategory(isExpanded ? null : category.id)}
-                    className={`w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors ${
-                      isExpanded ? "bg-gray-50" : ""
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`p-1.5 rounded-md ${category.bgColor}`}>
-                        <Icon className={`h-4 w-4 ${category.color}`} />
-                      </div>
-                      <span className="font-medium text-sm text-gray-700">
-                        {category.title}
-                      </span>
-                      <Badge variant="secondary" className="text-xs">
-                        {category.templates.length}
-                      </Badge>
+      <Card className="w-72 flex-shrink-0 flex flex-col overflow-hidden">
+        <div className="p-3 border-b bg-gradient-to-r from-purple-50 to-indigo-50">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
+            <Sparkles className="h-4 w-4 text-purple-500" />
+            Template Pertanyaan
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Klik untuk langsung bertanya
+          </p>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-2">
+          {TEMPLATE_CATEGORIES.map((category) => {
+            const Icon = category.icon;
+            const isExpanded = expandedCategory === category.id;
+            
+            return (
+              <div key={category.id} className="mb-0.5">
+                <button
+                  onClick={() => setExpandedCategory(isExpanded ? null : category.id)}
+                  className={`w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition-colors ${
+                    isExpanded ? "bg-purple-50" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`p-1.5 rounded-md flex-shrink-0 ${category.bgColor}`}>
+                      <Icon className={`h-3.5 w-3.5 ${category.color}`} />
                     </div>
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 text-gray-400" />
-                    )}
-                  </button>
-                  
-                  {isExpanded && (
-                    <div className="ml-2 pl-4 border-l-2 border-gray-100 mt-1 space-y-1">
-                      {category.templates.map((template, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => handleSubmit(template.text)}
-                          disabled={isLoading}
-                          className="w-full text-left p-2 rounded-md text-sm hover:bg-purple-50 hover:text-purple-700 transition-colors disabled:opacity-50 group"
-                        >
-                          <span className="text-gray-700 group-hover:text-purple-700">
-                            {template.text}
-                          </span>
-                          <span className="block text-xs text-gray-400 group-hover:text-purple-500">
-                            {template.description}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+                    <span className="font-medium text-sm text-gray-700 truncate">
+                      {category.title}
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-600 flex-shrink-0">
+                      {category.templates.length}
+                    </span>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   )}
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      </div>
+                </button>
+                
+                {isExpanded && (
+                  <div className="mt-1 mb-2 ml-3 pl-3 border-l-2 border-purple-200 space-y-0.5">
+                    {category.templates.map((template, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSubmit(template.text)}
+                        disabled={isLoading}
+                        className="w-full text-left px-2 py-1.5 rounded-md text-xs hover:bg-purple-50 transition-colors disabled:opacity-50 group"
+                      >
+                        <span className="text-gray-600 group-hover:text-purple-700 line-clamp-2 leading-relaxed">
+                          {template.text}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Card>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
