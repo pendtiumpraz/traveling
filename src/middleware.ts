@@ -29,16 +29,23 @@ function extractSubdomain(hostname: string): string | null {
   return subdomain;
 }
 
-// Paths that don't require authentication
-const publicPaths = [
+// Paths that don't require authentication (exact match)
+const publicPathsExact = [
   "/",
   "/login",
   "/register",
+];
+
+// Paths that don't require authentication (prefix match)
+const publicPathsPrefix = [
   "/api/auth",
   "/api/seed",
   "/api/settings/landing",
   "/api/tenant/check",
   "/api/tenant/register",
+  "/packages",
+  "/schedules",
+  "/promo",
 ];
 
 // Role-based path access (11 roles from requirements)
@@ -147,8 +154,13 @@ export async function middleware(request: NextRequest) {
     return response;
   };
 
-  // Allow public paths
-  if (publicPaths.some((path) => pathname.startsWith(path))) {
+  // Allow public paths (exact match)
+  if (publicPathsExact.includes(pathname)) {
+    return createResponse(NextResponse.next());
+  }
+
+  // Allow public paths (prefix match)
+  if (publicPathsPrefix.some((path) => pathname.startsWith(path))) {
     return createResponse(NextResponse.next());
   }
 
