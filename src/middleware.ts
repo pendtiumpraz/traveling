@@ -38,6 +38,7 @@ const publicPathsExact = [
   "/reset-password",
   "/terms",
   "/privacy",
+  "/system",
 ];
 
 // Paths that don't require authentication (prefix match)
