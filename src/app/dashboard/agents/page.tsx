@@ -197,11 +197,13 @@ export default function AgentsPage() {
       key: "code",
       header: "Code",
       width: "100px",
+      sortable: true,
       render: (row) => <span className="font-mono text-xs">{row.code}</span>,
     },
     {
       key: "name",
       header: "Agent",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="font-medium text-gray-900">{row.name}</p>
@@ -225,12 +227,14 @@ export default function AgentsPage() {
       key: "tier",
       header: "Tier",
       width: "100px",
+      sortable: true,
       render: (row) => <Badge variant={tierColors[row.tier]}>{row.tier}</Badge>,
     },
     {
-      key: "commission",
+      key: "commissionRate",
       header: "Commission",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <span className="font-medium">{row.commissionRate}%</span>
       ),
@@ -242,9 +246,10 @@ export default function AgentsPage() {
       render: (row) => row._count.bookings,
     },
     {
-      key: "status",
+      key: "isActive",
       header: "Status",
       width: "90px",
+      sortable: true,
       render: (row) => (
         <Badge variant={row.isActive ? "success" : "secondary"}>
           {row.isActive ? "Active" : "Inactive"}
@@ -356,6 +361,9 @@ export default function AgentsPage() {
         columns={columns}
         data={agents}
         isLoading={isLoading}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

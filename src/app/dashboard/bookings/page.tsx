@@ -243,6 +243,7 @@ export default function BookingsPage() {
       key: "bookingCode",
       header: "Booking",
       width: "120px",
+      sortable: true,
       render: (row) => (
         <span className="font-mono text-xs font-medium text-primary">
           {row.bookingCode}
@@ -277,9 +278,10 @@ export default function BookingsPage() {
       ),
     },
     {
-      key: "room",
+      key: "roomType",
       header: "Room",
       width: "80px",
+      sortable: true,
       render: (row) => (
         <span className="text-sm">
           {row.roomType} ({row.pax})
@@ -290,6 +292,7 @@ export default function BookingsPage() {
       key: "totalPrice",
       header: "Total",
       width: "140px",
+      sortable: true,
       render: (row) => (
         <span className="font-medium">
           {formatCurrency(Number(row.totalPrice))}
@@ -300,14 +303,16 @@ export default function BookingsPage() {
       key: "status",
       header: "Status",
       width: "110px",
+      sortable: true,
       render: (row) => (
         <Badge variant={statusColors[row.status]}>{row.status}</Badge>
       ),
     },
     {
-      key: "payment",
+      key: "paymentStatus",
       header: "Payment",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <Badge variant={paymentColors[row.paymentStatus]}>
           {row.paymentStatus}
@@ -399,6 +404,9 @@ export default function BookingsPage() {
         data={bookings}
         isLoading={isLoading}
         onRowClick={handleView}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

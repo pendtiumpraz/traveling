@@ -11,6 +11,9 @@ import {
   Plus,
   Download,
   Loader2,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
@@ -21,6 +24,7 @@ export interface Column<T> {
   header: string | React.ReactNode;
   width?: string;
   sortable?: boolean;
+  sortKey?: string; // Optional different key for sorting (e.g., for nested fields)
   render?: (row: T, index: number) => React.ReactNode;
 }
 
@@ -41,6 +45,10 @@ export interface DataTableProps<T> {
     onPageChange: (page: number) => void;
     onPageSizeChange: (size: number) => void;
   };
+  // Sorting
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  onSort?: (sortBy: string, sortOrder: "asc" | "desc") => void;
   emptyMessage?: string;
   selectedRows?: T[];
   onSelectionChange?: (rows: T[]) => void;
@@ -58,12 +66,38 @@ export function DataTable<T extends { id?: string | number }>({
   onRowClick,
   onExport,
   pagination,
+  sortBy,
+  sortOrder,
+  onSort,
   emptyMessage = "No data found",
   selectedRows = [],
   onSelectionChange,
   rowKey,
 }: DataTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleColumnSort = (column: Column<T>) => {
+    if (!column.sortable || !onSort) return;
+    const key = column.sortKey || column.key;
+    if (sortBy === key) {
+      onSort(key, sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      onSort(key, "asc");
+    }
+  };
+
+  const getSortIcon = (column: Column<T>) => {
+    if (!column.sortable) return null;
+    const key = column.sortKey || column.key;
+    if (sortBy === key) {
+      return sortOrder === "asc" ? (
+        <ArrowUp className="h-3.5 w-3.5 ml-1" />
+      ) : (
+        <ArrowDown className="h-3.5 w-3.5 ml-1" />
+      );
+    }
+    return <ArrowUpDown className="h-3.5 w-3.5 ml-1 opacity-30" />;
+  };
 
   const getRowKey = (row: T, index: number): string => {
     if (typeof rowKey === "function") {
@@ -170,9 +204,16 @@ export function DataTable<T extends { id?: string | number }>({
                   <th
                     key={column.key}
                     style={{ width: column.width }}
-                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                    className={cn(
+                      "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600",
+                      column.sortable && onSort && "cursor-pointer hover:bg-gray-100 select-none"
+                    )}
+                    onClick={() => handleColumnSort(column)}
                   >
-                    {column.header}
+                    <div className="flex items-center">
+                      {column.header}
+                      {getSortIcon(column)}
+                    </div>
                   </th>
                 ))}
               </tr>
@@ -243,63 +284,157 @@ export function DataTable<T extends { id?: string | number }>({
 
         {/* Pagination */}
         {pagination && (
-          <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50/50 px-4 py-3">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>Rows per page:</span>
-              <select
-                value={pagination.pageSize}
-                onChange={(e) =>
-                  pagination.onPageSizeChange(Number(e.target.value))
-                }
-                className="rounded border-gray-300 text-sm focus:border-primary focus:ring-primary"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-              <span className="ml-4">
-                {pagination.page * pagination.pageSize + 1}-
-                {Math.min(
-                  (pagination.page + 1) * pagination.pageSize,
-                  pagination.total,
-                )}{" "}
-                of {pagination.total}
+          <div className="flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-gray-50/50 px-4 py-3 gap-3">
+            {/* Left: Info */}
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <span className="font-medium">
+                Showing{" "}
+                <span className="text-gray-900">
+                  {pagination.total === 0 ? 0 : pagination.page * pagination.pageSize + 1}
+                </span>
+                {" - "}
+                <span className="text-gray-900">
+                  {Math.min(
+                    (pagination.page + 1) * pagination.pageSize,
+                    pagination.total,
+                  )}
+                </span>
+                {" of "}
+                <span className="text-gray-900">{pagination.total}</span>
               </span>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">per page:</span>
+                <select
+                  value={pagination.pageSize}
+                  onChange={(e) =>
+                    pagination.onPageSizeChange(Number(e.target.value))
+                  }
+                  className="h-8 rounded border-gray-300 text-sm focus:border-primary focus:ring-primary"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
             </div>
+
+            {/* Right: Page Numbers */}
             <div className="flex items-center gap-1">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 onClick={() => pagination.onPageChange(0)}
                 disabled={pagination.page === 0}
+                className="h-8 w-8"
               >
                 <ChevronsLeft className="h-4 w-4" />
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 onClick={() => pagination.onPageChange(pagination.page - 1)}
                 disabled={pagination.page === 0}
+                className="h-8 w-8"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="mx-2 text-sm text-gray-600">
-                Page {pagination.page + 1} of {totalPages}
-              </span>
+
+              {/* Page Number Buttons */}
+              <div className="flex items-center gap-1 mx-1">
+                {(() => {
+                  const pages = [];
+                  const currentPage = pagination.page;
+                  let startPage = Math.max(0, currentPage - 2);
+                  let endPage = Math.min(totalPages - 1, currentPage + 2);
+
+                  // Adjust if at the start
+                  if (currentPage < 2) {
+                    endPage = Math.min(totalPages - 1, 4);
+                  }
+                  // Adjust if at the end
+                  if (currentPage > totalPages - 3) {
+                    startPage = Math.max(0, totalPages - 5);
+                  }
+
+                  // First page
+                  if (startPage > 0) {
+                    pages.push(
+                      <Button
+                        key={0}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => pagination.onPageChange(0)}
+                        className="h-8 w-8 p-0"
+                      >
+                        1
+                      </Button>
+                    );
+                    if (startPage > 1) {
+                      pages.push(
+                        <span key="dots-start" className="px-1 text-gray-400">
+                          ...
+                        </span>
+                      );
+                    }
+                  }
+
+                  // Page numbers
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <Button
+                        key={i}
+                        variant={i === currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => pagination.onPageChange(i)}
+                        className="h-8 w-8 p-0"
+                      >
+                        {i + 1}
+                      </Button>
+                    );
+                  }
+
+                  // Last page
+                  if (endPage < totalPages - 1) {
+                    if (endPage < totalPages - 2) {
+                      pages.push(
+                        <span key="dots-end" className="px-1 text-gray-400">
+                          ...
+                        </span>
+                      );
+                    }
+                    pages.push(
+                      <Button
+                        key={totalPages - 1}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => pagination.onPageChange(totalPages - 1)}
+                        className="h-8 w-8 p-0"
+                      >
+                        {totalPages}
+                      </Button>
+                    );
+                  }
+
+                  return pages;
+                })()}
+              </div>
+
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 onClick={() => pagination.onPageChange(pagination.page + 1)}
                 disabled={pagination.page >= totalPages - 1}
+                className="h-8 w-8"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 onClick={() => pagination.onPageChange(totalPages - 1)}
                 disabled={pagination.page >= totalPages - 1}
+                className="h-8 w-8"
               >
                 <ChevronsRight className="h-4 w-4" />
               </Button>

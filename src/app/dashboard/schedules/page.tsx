@@ -210,9 +210,10 @@ export default function SchedulesPage() {
       ),
     },
     {
-      key: "departure",
+      key: "departureDate",
       header: "Departure",
       width: "140px",
+      sortable: true,
       render: (row) => (
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-gray-400" />
@@ -227,9 +228,10 @@ export default function SchedulesPage() {
       ),
     },
     {
-      key: "return",
+      key: "returnDate",
       header: "Return",
       width: "140px",
+      sortable: true,
       render: (row) =>
         formatDate(row.returnDate, {
           day: "numeric",
@@ -241,6 +243,7 @@ export default function SchedulesPage() {
       key: "quota",
       header: "Quota",
       width: "120px",
+      sortable: true,
       render: (row) => (
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-gray-400" />
@@ -253,6 +256,7 @@ export default function SchedulesPage() {
       key: "status",
       header: "Status",
       width: "120px",
+      sortable: true,
       render: (row) => (
         <Badge variant={statusColors[row.status]}>
           {row.status.replace("_", " ")}
@@ -348,6 +352,9 @@ export default function SchedulesPage() {
         data={schedules}
         isLoading={isLoading}
         onRowClick={handleView}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

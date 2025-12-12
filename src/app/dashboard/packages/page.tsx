@@ -219,6 +219,7 @@ export default function PackagesPage() {
       key: "code",
       header: "Code",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <span className="font-mono text-xs text-gray-500">{row.code}</span>
       ),
@@ -226,6 +227,7 @@ export default function PackagesPage() {
     {
       key: "name",
       header: "Package Name",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="font-medium text-gray-900">
@@ -241,14 +243,16 @@ export default function PackagesPage() {
       key: "type",
       header: "Type",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <Badge variant={typeColors[row.type] || "secondary"}>{row.type}</Badge>
       ),
     },
     {
-      key: "price",
+      key: "priceDouble",
       header: "Price (Double)",
       width: "140px",
+      sortable: true,
       render: (row) => (
         <span className="font-medium text-gray-900">
           {formatCurrency(Number(row.priceDouble))}
@@ -368,6 +372,9 @@ export default function PackagesPage() {
         data={packages}
         isLoading={isLoading}
         onRowClick={handleView}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,

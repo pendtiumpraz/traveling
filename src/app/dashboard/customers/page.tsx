@@ -234,6 +234,7 @@ export default function CustomersPage() {
       key: "code",
       header: "Code",
       width: "120px",
+      sortable: true,
       render: (row) => (
         <span className="font-mono text-xs text-gray-500">{row.code}</span>
       ),
@@ -241,6 +242,7 @@ export default function CustomersPage() {
     {
       key: "fullName",
       header: "Name",
+      sortable: true,
       render: (row) => (
         <div>
           <p className="font-medium text-gray-900">{row.fullName}</p>
@@ -270,6 +272,7 @@ export default function CustomersPage() {
       key: "customerType",
       header: "Type",
       width: "100px",
+      sortable: true,
       render: (row) => (
         <Badge variant={customerTypeColors[row.customerType]}>
           {customerTypeLabels[row.customerType]}
@@ -288,6 +291,7 @@ export default function CustomersPage() {
       key: "createdAt",
       header: "Created",
       width: "120px",
+      sortable: true,
       render: (row) => (
         <span className="text-sm text-gray-500">
           {formatDate(row.createdAt, {
@@ -382,6 +386,9 @@ export default function CustomersPage() {
         data={customers}
         isLoading={isLoading}
         onRowClick={handleView}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
         pagination={{
           page,
           pageSize,
