@@ -8,8 +8,8 @@ import {
 } from "@/lib/api-response";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
+const GEMINI_MODEL = "gemini-2.5-flash"; // Stable model
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // Database schema info for AI context
 const DATABASE_SCHEMA = `
