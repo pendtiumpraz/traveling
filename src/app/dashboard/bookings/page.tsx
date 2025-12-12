@@ -9,7 +9,15 @@ import {
   SidebarModal,
 } from "@/components/ui";
 import { BookingForm } from "./booking-form";
-import { Eye, Edit, Trash2 } from "lucide-react";
+import {
+  DataTableToolbar,
+  useTableSelection,
+  SelectCheckbox,
+  FilterConfig,
+  SortOption,
+} from "@/components/ui/data-table-toolbar";
+import { TrashModal } from "@/components/ui/trash-modal";
+import { Eye, Edit, Trash2, Plus } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
 
 interface Booking {
@@ -56,6 +64,57 @@ const paymentColors: Record<
   REFUNDED: "secondary",
 };
 
+// Filter configurations
+const BOOKING_FILTERS: FilterConfig[] = [
+  {
+    key: "status",
+    label: "Status",
+    options: [
+      { label: "Pending", value: "PENDING" },
+      { label: "Confirmed", value: "CONFIRMED" },
+      { label: "Processing", value: "PROCESSING" },
+      { label: "Ready", value: "READY" },
+      { label: "Departed", value: "DEPARTED" },
+      { label: "Completed", value: "COMPLETED" },
+      { label: "Cancelled", value: "CANCELLED" },
+    ],
+  },
+  {
+    key: "paymentStatus",
+    label: "Payment",
+    options: [
+      { label: "Unpaid", value: "UNPAID" },
+      { label: "Partial", value: "PARTIAL" },
+      { label: "Paid", value: "PAID" },
+      { label: "Refunded", value: "REFUNDED" },
+    ],
+  },
+  {
+    key: "roomType",
+    label: "Room",
+    options: [
+      { label: "Quad", value: "QUAD" },
+      { label: "Triple", value: "TRIPLE" },
+      { label: "Double", value: "DOUBLE" },
+      { label: "Twin", value: "TWIN" },
+      { label: "Single", value: "SINGLE" },
+    ],
+  },
+];
+
+const BOOKING_SORT_OPTIONS: SortOption[] = [
+  { label: "Created Date", value: "createdAt" },
+  { label: "Departure Date", value: "schedule.departureDate" },
+  { label: "Total Price", value: "totalPrice" },
+  { label: "Status", value: "status" },
+];
+
+const TRASH_COLUMNS = [
+  { key: "bookingCode", header: "Code" },
+  { key: "totalPrice", header: "Total" },
+  { key: "status", header: "Status" },
+];
+
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,6 +122,26 @@ export default function BookingsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+
+  // Filter & Sort state
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // Trash modal
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
+
+  // Selection state
+  const {
+    selectedIds,
+    toggleItem,
+    selectAll,
+    clearSelection,
+    toggleAll,
+    isSelected,
+    isAllSelected,
+    isSomeSelected,
+  } = useTableSelection(bookings);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"view" | "create" | "edit">(
@@ -77,7 +156,15 @@ export default function BookingsPage() {
         page: page.toString(),
         pageSize: pageSize.toString(),
         search,
+        sortBy,
+        sortOrder,
       });
+
+      // Add filter values to params
+      Object.entries(filterValues).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+
       const res = await fetch(`/api/bookings?${params}`);
       const json = await res.json();
       if (json.success) {
@@ -89,11 +176,21 @@ export default function BookingsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize, search]);
+  }, [page, pageSize, search, sortBy, sortOrder, filterValues]);
 
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilterValues((prev) => ({ ...prev, [key]: value }));
+    setPage(0);
+  };
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+  };
 
   const handleAdd = () => {
     setSelectedBooking(null);
@@ -125,6 +222,23 @@ export default function BookingsPage() {
   };
 
   const columns: Column<Booking>[] = [
+    {
+      key: "select",
+      header: (
+        <SelectCheckbox
+          checked={isAllSelected}
+          onChange={toggleAll}
+          indeterminate={isSomeSelected}
+        />
+      ),
+      width: "50px",
+      render: (row) => (
+        <SelectCheckbox
+          checked={isSelected(row.id)}
+          onChange={() => toggleItem(row.id)}
+        />
+      ),
+    },
     {
       key: "bookingCode",
       header: "Booking",
@@ -246,19 +360,44 @@ export default function BookingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
-        <p className="text-gray-500">Manage customer bookings</p>
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
+          <p className="text-gray-500">Manage customer bookings</p>
+        </div>
+        <Button onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Booking
+        </Button>
       </div>
+
+      {/* Toolbar with filters */}
+      <DataTableToolbar
+        selectedIds={selectedIds}
+        onSelectAll={selectAll}
+        onClearSelection={clearSelection}
+        totalItems={total}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search booking code, customer..."
+        filters={BOOKING_FILTERS}
+        filterValues={filterValues}
+        onFilterChange={handleFilterChange}
+        sortOptions={BOOKING_SORT_OPTIONS}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
+        modelName="booking"
+        onBulkDelete={fetchBookings}
+        onImportSuccess={fetchBookings}
+        onViewTrash={() => setIsTrashOpen(true)}
+      />
 
       <DataTable
         columns={columns}
         data={bookings}
         isLoading={isLoading}
-        searchPlaceholder="Search booking code, customer..."
-        onSearch={setSearch}
-        onAdd={handleAdd}
-        addLabel="New Booking"
         onRowClick={handleView}
         pagination={{
           page,
@@ -290,6 +429,16 @@ export default function BookingsPage() {
           onEdit={() => setModalMode("edit")}
         />
       </SidebarModal>
+
+      {/* Trash Modal */}
+      <TrashModal
+        isOpen={isTrashOpen}
+        onClose={() => setIsTrashOpen(false)}
+        modelName="booking"
+        modelLabel="Bookings"
+        onRestoreSuccess={fetchBookings}
+        columns={TRASH_COLUMNS}
+      />
     </div>
   );
 }

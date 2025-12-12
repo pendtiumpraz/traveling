@@ -13,7 +13,10 @@ import {
   DataTableToolbar,
   useTableSelection,
   SelectCheckbox,
+  FilterConfig,
+  SortOption,
 } from "@/components/ui/data-table-toolbar";
+import { TrashModal } from "@/components/ui/trash-modal";
 import { Eye, Edit, Trash2, Phone, Mail, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -45,6 +48,48 @@ const customerTypeLabels = {
   INACTIVE: "Inactive",
 };
 
+// Filter configurations
+const CUSTOMER_FILTERS: FilterConfig[] = [
+  {
+    key: "customerType",
+    label: "Type",
+    options: [
+      { label: "Prospect", value: "PROSPECT" },
+      { label: "Client", value: "CLIENT" },
+      { label: "VIP", value: "VIP" },
+      { label: "Inactive", value: "INACTIVE" },
+    ],
+  },
+  {
+    key: "source",
+    label: "Source",
+    options: [
+      { label: "Website", value: "WEBSITE" },
+      { label: "Referral", value: "REFERRAL" },
+      { label: "Agent", value: "AGENT" },
+      { label: "Social Media", value: "SOCIAL_MEDIA" },
+      { label: "Walk In", value: "WALK_IN" },
+      { label: "Phone", value: "PHONE" },
+      { label: "Event", value: "EVENT" },
+      { label: "Corporate", value: "CORPORATE" },
+    ],
+  },
+];
+
+const CUSTOMER_SORT_OPTIONS: SortOption[] = [
+  { label: "Created Date", value: "createdAt" },
+  { label: "Name", value: "fullName" },
+  { label: "Type", value: "customerType" },
+  { label: "City", value: "city" },
+];
+
+const TRASH_COLUMNS = [
+  { key: "code", header: "Code" },
+  { key: "fullName", header: "Name" },
+  { key: "phone", header: "Phone" },
+  { key: "email", header: "Email" },
+];
+
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,6 +97,14 @@ export default function CustomersPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  
+  // Filter & Sort state
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  
+  // Trash modal
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
 
   // Selection state
   const {
@@ -81,6 +134,13 @@ export default function CustomersPage() {
         page: page.toString(),
         pageSize: pageSize.toString(),
         search,
+        sortBy,
+        sortOrder,
+      });
+      
+      // Add filter values to params
+      Object.entries(filterValues).forEach(([key, value]) => {
+        if (value) params.append(key, value);
       });
 
       const res = await fetch(`/api/customers?${params}`);
@@ -95,11 +155,21 @@ export default function CustomersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize, search]);
+  }, [page, pageSize, search, sortBy, sortOrder, filterValues]);
 
   useEffect(() => {
     fetchCustomers();
   }, [fetchCustomers]);
+  
+  const handleFilterChange = (key: string, value: string) => {
+    setFilterValues((prev) => ({ ...prev, [key]: value }));
+    setPage(0); // Reset to first page when filtering
+  };
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+  };
 
   const handleAdd = () => {
     setSelectedCustomer(null);
@@ -284,7 +354,7 @@ export default function CustomersPage() {
         </Button>
       </div>
 
-      {/* Toolbar with bulk actions & import */}
+      {/* Toolbar with bulk actions, filters & import */}
       <DataTableToolbar
         selectedIds={selectedIds}
         onSelectAll={selectAll}
@@ -293,9 +363,17 @@ export default function CustomersPage() {
         searchValue={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search by name, phone, email..."
+        filters={CUSTOMER_FILTERS}
+        filterValues={filterValues}
+        onFilterChange={handleFilterChange}
+        sortOptions={CUSTOMER_SORT_OPTIONS}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
         modelName="customer"
         onBulkDelete={fetchCustomers}
         onImportSuccess={fetchCustomers}
+        onViewTrash={() => setIsTrashOpen(true)}
       />
 
       {/* Data Table */}
@@ -342,6 +420,16 @@ export default function CustomersPage() {
           onEdit={() => setModalMode("edit")}
         />
       </SidebarModal>
+
+      {/* Trash Modal */}
+      <TrashModal
+        isOpen={isTrashOpen}
+        onClose={() => setIsTrashOpen(false)}
+        modelName="customer"
+        modelLabel="Customers"
+        onRestoreSuccess={fetchCustomers}
+        columns={TRASH_COLUMNS}
+      />
     </div>
   );
 }

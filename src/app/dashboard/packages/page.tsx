@@ -9,7 +9,15 @@ import {
   SidebarModal,
 } from "@/components/ui";
 import { PackageForm } from "./package-form";
-import { Eye, Edit, Trash2, Calendar, Users } from "lucide-react";
+import {
+  DataTableToolbar,
+  useTableSelection,
+  SelectCheckbox,
+  FilterConfig,
+  SortOption,
+} from "@/components/ui/data-table-toolbar";
+import { TrashModal } from "@/components/ui/trash-modal";
+import { Eye, Edit, Trash2, Calendar, Users, Plus } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface Package {
@@ -41,6 +49,42 @@ const typeColors: Record<
   CRUISE: "default",
 };
 
+const PACKAGE_FILTERS: FilterConfig[] = [
+  {
+    key: "type",
+    label: "Type",
+    options: [
+      { label: "Umroh", value: "UMROH" },
+      { label: "Haji", value: "HAJI" },
+      { label: "Outbound", value: "OUTBOUND" },
+      { label: "Inbound", value: "INBOUND" },
+      { label: "Domestic", value: "DOMESTIC" },
+      { label: "MICE", value: "MICE" },
+      { label: "Cruise", value: "CRUISE" },
+    ],
+  },
+  {
+    key: "isActive",
+    label: "Status",
+    options: [
+      { label: "Active", value: "true" },
+      { label: "Inactive", value: "false" },
+    ],
+  },
+];
+
+const PACKAGE_SORT_OPTIONS: SortOption[] = [
+  { label: "Created Date", value: "createdAt" },
+  { label: "Name", value: "name" },
+  { label: "Price", value: "priceDouble" },
+  { label: "Duration", value: "duration" },
+];
+
+const TRASH_COLUMNS = [
+  { key: "code", header: "Code" },
+  { key: "type", header: "Type" },
+];
+
 export default function PackagesPage() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,6 +92,22 @@ export default function PackagesPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
+
+  const {
+    selectedIds,
+    toggleItem,
+    selectAll,
+    clearSelection,
+    toggleAll,
+    isSelected,
+    isAllSelected,
+    isSomeSelected,
+  } = useTableSelection(packages);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"view" | "create" | "edit">(
@@ -62,6 +122,12 @@ export default function PackagesPage() {
         page: page.toString(),
         pageSize: pageSize.toString(),
         search,
+        sortBy,
+        sortOrder,
+      });
+
+      Object.entries(filterValues).forEach(([key, value]) => {
+        if (value) params.append(key, value);
       });
 
       const res = await fetch(`/api/packages?${params}`);
@@ -76,11 +142,21 @@ export default function PackagesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize, search]);
+  }, [page, pageSize, search, sortBy, sortOrder, filterValues]);
 
   useEffect(() => {
     fetchPackages();
   }, [fetchPackages]);
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilterValues((prev) => ({ ...prev, [key]: value }));
+    setPage(0);
+  };
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+  };
 
   const handleAdd = () => {
     setSelectedPackage(null);
@@ -122,6 +198,23 @@ export default function PackagesPage() {
   };
 
   const columns: Column<Package>[] = [
+    {
+      key: "select",
+      header: (
+        <SelectCheckbox
+          checked={isAllSelected}
+          onChange={toggleAll}
+          indeterminate={isSomeSelected}
+        />
+      ),
+      width: "50px",
+      render: (row) => (
+        <SelectCheckbox
+          checked={isSelected(row.id)}
+          onChange={() => toggleItem(row.id)}
+        />
+      ),
+    },
     {
       key: "code",
       header: "Code",
@@ -238,19 +331,42 @@ export default function PackagesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Packages</h1>
-        <p className="text-gray-500">Manage travel packages and tours</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Packages</h1>
+          <p className="text-gray-500">Manage travel packages and tours</p>
+        </div>
+        <Button onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Package
+        </Button>
       </div>
+
+      <DataTableToolbar
+        selectedIds={selectedIds}
+        onSelectAll={selectAll}
+        onClearSelection={clearSelection}
+        totalItems={total}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search packages..."
+        filters={PACKAGE_FILTERS}
+        filterValues={filterValues}
+        onFilterChange={handleFilterChange}
+        sortOptions={PACKAGE_SORT_OPTIONS}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
+        modelName="package"
+        onBulkDelete={fetchPackages}
+        onImportSuccess={fetchPackages}
+        onViewTrash={() => setIsTrashOpen(true)}
+      />
 
       <DataTable
         columns={columns}
         data={packages}
         isLoading={isLoading}
-        searchPlaceholder="Search packages..."
-        onSearch={setSearch}
-        onAdd={handleAdd}
-        addLabel="Add Package"
         onRowClick={handleView}
         pagination={{
           page,
@@ -282,6 +398,15 @@ export default function PackagesPage() {
           onEdit={() => setModalMode("edit")}
         />
       </SidebarModal>
+
+      <TrashModal
+        isOpen={isTrashOpen}
+        onClose={() => setIsTrashOpen(false)}
+        modelName="package"
+        modelLabel="Packages"
+        onRestoreSuccess={fetchPackages}
+        columns={TRASH_COLUMNS}
+      />
     </div>
   );
 }

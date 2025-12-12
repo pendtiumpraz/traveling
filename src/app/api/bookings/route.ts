@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
     const paymentStatus = searchParams.get("paymentStatus") || "";
+    const roomType = searchParams.get("roomType") || "";
     const scheduleId = searchParams.get("scheduleId") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
@@ -78,6 +79,9 @@ export async function GET(request: NextRequest) {
           | "PARTIAL"
           | "PAID"
           | "REFUNDED",
+      }),
+      ...(roomType && {
+        roomType: roomType as "QUAD" | "TRIPLE" | "DOUBLE" | "TWIN" | "SINGLE",
       }),
       ...(scheduleId && { scheduleId }),
     };

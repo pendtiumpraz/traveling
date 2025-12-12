@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
     const pageSize = parseInt(searchParams.get("pageSize") || "10");
     const search = searchParams.get("search") || "";
     const customerType = searchParams.get("customerType") || "";
+    const source = searchParams.get("source") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -71,6 +72,7 @@ export async function GET(request: NextRequest) {
           { email: { contains: search, mode: "insensitive" as const } },
           { passportNumber: { contains: search } },
           { code: { contains: search, mode: "insensitive" as const } },
+          { city: { contains: search, mode: "insensitive" as const } },
         ],
       }),
       ...(customerType && {
@@ -79,6 +81,18 @@ export async function GET(request: NextRequest) {
           | "CLIENT"
           | "VIP"
           | "INACTIVE",
+      }),
+      ...(source && {
+        source: source as
+          | "WEBSITE"
+          | "REFERRAL"
+          | "AGENT"
+          | "SOCIAL_MEDIA"
+          | "WALK_IN"
+          | "PHONE"
+          | "EVENT"
+          | "CORPORATE"
+          | "OTHER",
       }),
     };
 

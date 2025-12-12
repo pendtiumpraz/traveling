@@ -12,8 +12,30 @@ import {
   Loader2,
   CheckSquare,
   Square,
+  Filter,
+  SortAsc,
+  SortDesc,
+  RotateCcw,
+  Trash,
+  ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
+
+export interface FilterOption {
+  label: string;
+  value: string;
+}
+
+export interface FilterConfig {
+  key: string;
+  label: string;
+  options: FilterOption[];
+}
+
+export interface SortOption {
+  label: string;
+  value: string;
+}
 
 interface DataTableToolbarProps {
   // Selection
@@ -27,12 +49,27 @@ interface DataTableToolbarProps {
   onSearchChange?: (value: string) => void;
   searchPlaceholder?: string;
 
+  // Filters
+  filters?: FilterConfig[];
+  filterValues?: Record<string, string>;
+  onFilterChange?: (key: string, value: string) => void;
+
+  // Sorting
+  sortOptions?: SortOption[];
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  onSortChange?: (sortBy: string, sortOrder: "asc" | "desc") => void;
+
   // Bulk operations
   modelName: string;
   onBulkDelete?: () => void;
 
   // Import
   onImportSuccess?: () => void;
+
+  // Trash view
+  showTrashButton?: boolean;
+  onViewTrash?: () => void;
 
   // Custom actions
   customActions?: React.ReactNode;
@@ -46,14 +83,34 @@ export function DataTableToolbar({
   searchValue = "",
   onSearchChange,
   searchPlaceholder = "Search...",
+  filters,
+  filterValues = {},
+  onFilterChange,
+  sortOptions,
+  sortBy,
+  sortOrder = "desc",
+  onSortChange,
   modelName,
   onBulkDelete,
   onImportSuccess,
+  showTrashButton = true,
+  onViewTrash,
   customActions,
 }: DataTableToolbarProps) {
   const toast = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+
+  const activeFiltersCount = Object.values(filterValues).filter(
+    (v) => v && v !== "",
+  ).length;
+
+  const clearAllFilters = () => {
+    if (onFilterChange) {
+      filters?.forEach((f) => onFilterChange(f.key, ""));
+    }
+  };
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) {
@@ -146,31 +203,94 @@ export function DataTableToolbar({
 
   return (
     <div className="flex flex-col gap-4 mb-4">
-      {/* Top row: Search and actions */}
+      {/* Top row: Search, filters and actions */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Search */}
-        {onSearchChange && (
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              value={searchValue}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder={searchPlaceholder}
-              className="pl-10 pr-10"
-            />
-            {searchValue && (
-              <button
-                onClick={() => onSearchChange("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        <div className="flex items-center gap-2 flex-1">
+          {onSearchChange && (
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                value={searchValue}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder={searchPlaceholder}
+                className="pl-10 pr-10"
+              />
+              {searchValue && (
+                <button
+                  onClick={() => onSearchChange("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Filter Toggle Button */}
+          {filters && filters.length > 0 && (
+            <Button
+              variant={showFilters || activeFiltersCount > 0 ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+              {activeFiltersCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-xs bg-white text-blue-600 rounded-full">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </Button>
+          )}
+
+          {/* Sort Dropdown */}
+          {sortOptions && sortOptions.length > 0 && onSortChange && (
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => onSortChange(e.target.value, sortOrder)}
+                className="h-9 px-3 pr-8 rounded-md border border-gray-200 text-sm bg-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        )}
+                {sortOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
+          )}
+
+          {/* Sort Order Toggle */}
+          {onSortChange && sortBy && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() =>
+                onSortChange(sortBy, sortOrder === "asc" ? "desc" : "asc")
+              }
+              title={sortOrder === "asc" ? "Ascending" : "Descending"}
+            >
+              {sortOrder === "asc" ? (
+                <SortAsc className="h-4 w-4" />
+              ) : (
+                <SortDesc className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+        </div>
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          {/* Trash View */}
+          {showTrashButton && onViewTrash && (
+            <Button variant="outline" size="sm" onClick={onViewTrash}>
+              <Trash className="h-4 w-4 mr-2" />
+              Trash
+            </Button>
+          )}
+
           {/* Import */}
           <div className="relative">
             <input
@@ -199,6 +319,41 @@ export function DataTableToolbar({
           {customActions}
         </div>
       </div>
+
+      {/* Filter Row */}
+      {showFilters && filters && filters.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+          {filters.map((filter) => (
+            <div key={filter.key} className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">{filter.label}:</label>
+              <select
+                value={filterValues[filter.key] || ""}
+                onChange={(e) => onFilterChange?.(filter.key, e.target.value)}
+                className="h-8 px-2 pr-7 rounded border border-gray-200 text-sm bg-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All</option>
+                {filter.options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+          
+          {activeFiltersCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Selection bar - only show when items are selected */}
       {selectedIds.length > 0 && (

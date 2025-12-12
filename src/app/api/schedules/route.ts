@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "0");
     const pageSize = parseInt(searchParams.get("pageSize") || "10");
+    const search = searchParams.get("search") || "";
     const packageId = searchParams.get("packageId") || "";
     const status = searchParams.get("status") || "";
     const fromDate = searchParams.get("fromDate") || "";
@@ -47,6 +48,11 @@ export async function GET(request: NextRequest) {
       package: {
         ...(session.user.tenantId && { tenantId: session.user.tenantId }),
         isDeleted: false,
+        ...(search && {
+          OR: [
+            { code: { contains: search, mode: "insensitive" as const } },
+          ],
+        }),
       },
       ...(packageId && { packageId }),
       ...(status && {

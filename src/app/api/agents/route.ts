@@ -31,6 +31,9 @@ export async function GET(request: NextRequest) {
     const pageSize = parseInt(searchParams.get("pageSize") || "10");
     const search = searchParams.get("search") || "";
     const tier = searchParams.get("tier") || "";
+    const isActive = searchParams.get("isActive");
+    const sortBy = searchParams.get("sortBy") || "createdAt";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
 
     const where = {
       isDeleted: false,
@@ -39,9 +42,12 @@ export async function GET(request: NextRequest) {
         OR: [
           { name: { contains: search, mode: "insensitive" as const } },
           { companyName: { contains: search, mode: "insensitive" as const } },
+          { code: { contains: search, mode: "insensitive" as const } },
+          { phone: { contains: search } },
         ],
       }),
       ...(tier && { tier: tier as "REGULAR" | "SILVER" | "GOLD" | "PLATINUM" }),
+      ...(isActive !== null && isActive !== "" && { isActive: isActive === "true" }),
     };
 
     const [agents, total] = await Promise.all([
@@ -49,7 +55,7 @@ export async function GET(request: NextRequest) {
         where,
         skip: page * pageSize,
         take: pageSize,
-        orderBy: { name: "asc" },
+        orderBy: { [sortBy]: sortOrder },
         include: {
           _count: { select: { bookings: true, commissions: true } },
         },

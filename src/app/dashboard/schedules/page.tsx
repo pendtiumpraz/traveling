@@ -9,7 +9,15 @@ import {
   SidebarModal,
 } from "@/components/ui";
 import { ScheduleForm } from "./schedule-form";
-import { Eye, Edit, Trash2, Users, Calendar } from "lucide-react";
+import {
+  DataTableToolbar,
+  useTableSelection,
+  SelectCheckbox,
+  FilterConfig,
+  SortOption,
+} from "@/components/ui/data-table-toolbar";
+import { TrashModal } from "@/components/ui/trash-modal";
+import { Eye, Edit, Trash2, Users, Calendar, Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 interface Schedule {
@@ -40,12 +48,55 @@ const statusColors: Record<
   COMPLETED: "secondary",
 };
 
+const SCHEDULE_FILTERS: FilterConfig[] = [
+  {
+    key: "status",
+    label: "Status",
+    options: [
+      { label: "Open", value: "OPEN" },
+      { label: "Almost Full", value: "ALMOST_FULL" },
+      { label: "Full", value: "FULL" },
+      { label: "Closed", value: "CLOSED" },
+      { label: "Departed", value: "DEPARTED" },
+      { label: "Completed", value: "COMPLETED" },
+    ],
+  },
+];
+
+const SCHEDULE_SORT_OPTIONS: SortOption[] = [
+  { label: "Departure Date", value: "departureDate" },
+  { label: "Created Date", value: "createdAt" },
+  { label: "Quota", value: "quota" },
+];
+
+const TRASH_COLUMNS = [
+  { key: "departureDate", header: "Departure" },
+  { key: "status", header: "Status" },
+];
+
 export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState("departureDate");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
+
+  const {
+    selectedIds,
+    toggleItem,
+    selectAll,
+    clearSelection,
+    toggleAll,
+    isSelected,
+    isAllSelected,
+    isSomeSelected,
+  } = useTableSelection(schedules);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"view" | "create" | "edit">(
@@ -61,7 +112,15 @@ export default function SchedulesPage() {
       const params = new URLSearchParams({
         page: page.toString(),
         pageSize: pageSize.toString(),
+        search,
+        sortBy,
+        sortOrder,
       });
+
+      Object.entries(filterValues).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+
       const res = await fetch(`/api/schedules?${params}`);
       const json = await res.json();
       if (json.success) {
@@ -73,11 +132,21 @@ export default function SchedulesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize]);
+  }, [page, pageSize, search, sortBy, sortOrder, filterValues]);
 
   useEffect(() => {
     fetchSchedules();
   }, [fetchSchedules]);
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilterValues((prev) => ({ ...prev, [key]: value }));
+    setPage(0);
+  };
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+  };
 
   const handleAdd = () => {
     setSelectedSchedule(null);
@@ -109,6 +178,23 @@ export default function SchedulesPage() {
   };
 
   const columns: Column<Schedule>[] = [
+    {
+      key: "select",
+      header: (
+        <SelectCheckbox
+          checked={isAllSelected}
+          onChange={toggleAll}
+          indeterminate={isSomeSelected}
+        />
+      ),
+      width: "50px",
+      render: (row) => (
+        <SelectCheckbox
+          checked={isSelected(row.id)}
+          onChange={() => toggleItem(row.id)}
+        />
+      ),
+    },
     {
       key: "package",
       header: "Package",
@@ -225,17 +311,42 @@ export default function SchedulesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Schedules</h1>
-        <p className="text-gray-500">Manage departure schedules</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Schedules</h1>
+          <p className="text-gray-500">Manage departure schedules</p>
+        </div>
+        <Button onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Schedule
+        </Button>
       </div>
+
+      <DataTableToolbar
+        selectedIds={selectedIds}
+        onSelectAll={selectAll}
+        onClearSelection={clearSelection}
+        totalItems={total}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search schedules..."
+        filters={SCHEDULE_FILTERS}
+        filterValues={filterValues}
+        onFilterChange={handleFilterChange}
+        sortOptions={SCHEDULE_SORT_OPTIONS}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
+        modelName="schedule"
+        onBulkDelete={fetchSchedules}
+        onImportSuccess={fetchSchedules}
+        onViewTrash={() => setIsTrashOpen(true)}
+      />
 
       <DataTable
         columns={columns}
         data={schedules}
         isLoading={isLoading}
-        onAdd={handleAdd}
-        addLabel="Add Schedule"
         onRowClick={handleView}
         pagination={{
           page,
@@ -267,6 +378,15 @@ export default function SchedulesPage() {
           onEdit={() => setModalMode("edit")}
         />
       </SidebarModal>
+
+      <TrashModal
+        isOpen={isTrashOpen}
+        onClose={() => setIsTrashOpen(false)}
+        modelName="schedule"
+        modelLabel="Schedules"
+        onRestoreSuccess={fetchSchedules}
+        columns={TRASH_COLUMNS}
+      />
     </div>
   );
 }

@@ -10,7 +10,15 @@ import {
   SidebarModal,
 } from "@/components/ui";
 import { AgentForm } from "./agent-form";
-import { Eye, Edit, Users, Award, TrendingUp } from "lucide-react";
+import {
+  DataTableToolbar,
+  useTableSelection,
+  SelectCheckbox,
+  FilterConfig,
+  SortOption,
+} from "@/components/ui/data-table-toolbar";
+import { TrashModal } from "@/components/ui/trash-modal";
+import { Eye, Edit, Users, Award, TrendingUp, Plus } from "lucide-react";
 
 interface Agent {
   id: string;
@@ -38,6 +46,40 @@ const tierColors: Record<
   PLATINUM: "success",
 };
 
+const AGENT_FILTERS: FilterConfig[] = [
+  {
+    key: "tier",
+    label: "Tier",
+    options: [
+      { label: "Regular", value: "REGULAR" },
+      { label: "Silver", value: "SILVER" },
+      { label: "Gold", value: "GOLD" },
+      { label: "Platinum", value: "PLATINUM" },
+    ],
+  },
+  {
+    key: "isActive",
+    label: "Status",
+    options: [
+      { label: "Active", value: "true" },
+      { label: "Inactive", value: "false" },
+    ],
+  },
+];
+
+const AGENT_SORT_OPTIONS: SortOption[] = [
+  { label: "Created Date", value: "createdAt" },
+  { label: "Name", value: "name" },
+  { label: "Tier", value: "tier" },
+  { label: "Commission", value: "commissionRate" },
+];
+
+const TRASH_COLUMNS = [
+  { key: "code", header: "Code" },
+  { key: "name", header: "Name" },
+  { key: "tier", header: "Tier" },
+];
+
 export default function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +87,22 @@ export default function AgentsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
+
+  const {
+    selectedIds,
+    toggleItem,
+    selectAll,
+    clearSelection,
+    toggleAll,
+    isSelected,
+    isAllSelected,
+    isSomeSelected,
+  } = useTableSelection(agents);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,9 +114,19 @@ export default function AgentsPage() {
   const fetchAgents = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(
-        `/api/agents?page=${page}&pageSize=${pageSize}&search=${search}`,
-      );
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+        search,
+        sortBy,
+        sortOrder,
+      });
+
+      Object.entries(filterValues).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+
+      const res = await fetch(`/api/agents?${params}`);
       const json = await res.json();
       if (json.success) {
         setAgents(json.data);
@@ -69,11 +137,21 @@ export default function AgentsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize, search]);
+  }, [page, pageSize, search, sortBy, sortOrder, filterValues]);
 
   useEffect(() => {
     fetchAgents();
   }, [fetchAgents]);
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilterValues((prev) => ({ ...prev, [key]: value }));
+    setPage(0);
+  };
+
+  const handleSortChange = (newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+  };
 
   const totalBookings = agents.reduce((sum, a) => sum + a._count.bookings, 0);
 
@@ -98,6 +176,23 @@ export default function AgentsPage() {
   };
 
   const columns: Column<Agent>[] = [
+    {
+      key: "select",
+      header: (
+        <SelectCheckbox
+          checked={isAllSelected}
+          onChange={toggleAll}
+          indeterminate={isSomeSelected}
+        />
+      ),
+      width: "50px",
+      render: (row) => (
+        <SelectCheckbox
+          checked={isSelected(row.id)}
+          onChange={() => toggleItem(row.id)}
+        />
+      ),
+    },
     {
       key: "code",
       header: "Code",
@@ -183,9 +278,15 @@ export default function AgentsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Agents</h1>
-        <p className="text-gray-500">Manage travel agents and partners</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Agents</h1>
+          <p className="text-gray-500">Manage travel agents and partners</p>
+        </div>
+        <Button onClick={handleCreate}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Agent
+        </Button>
       </div>
 
       <div className="grid grid-cols-4 gap-4">
@@ -230,14 +331,31 @@ export default function AgentsPage() {
         </Card>
       </div>
 
+      <DataTableToolbar
+        selectedIds={selectedIds}
+        onSelectAll={selectAll}
+        onClearSelection={clearSelection}
+        totalItems={total}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search agents..."
+        filters={AGENT_FILTERS}
+        filterValues={filterValues}
+        onFilterChange={handleFilterChange}
+        sortOptions={AGENT_SORT_OPTIONS}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
+        modelName="agent"
+        onBulkDelete={fetchAgents}
+        onImportSuccess={fetchAgents}
+        onViewTrash={() => setIsTrashOpen(true)}
+      />
+
       <DataTable
         columns={columns}
         data={agents}
         isLoading={isLoading}
-        searchPlaceholder="Search agents..."
-        onSearch={setSearch}
-        addLabel="Add Agent"
-        onAdd={handleCreate}
         pagination={{
           page,
           pageSize,
@@ -268,6 +386,15 @@ export default function AgentsPage() {
           onEdit={modalMode === "view" ? handleEdit : undefined}
         />
       </SidebarModal>
+
+      <TrashModal
+        isOpen={isTrashOpen}
+        onClose={() => setIsTrashOpen(false)}
+        modelName="agent"
+        modelLabel="Agents"
+        onRestoreSuccess={fetchAgents}
+        columns={TRASH_COLUMNS}
+      />
     </div>
   );
 }
