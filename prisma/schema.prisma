@@ -507,6 +507,8 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   lastLoginAt       DateTime?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
   
   tenant            Tenant?   @relation(fields: [tenantId], references: [id])
   roles             UserRole[]
