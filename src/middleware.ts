@@ -44,6 +44,7 @@ const publicPathsExact = [
 const publicPathsPrefix = [
   "/api/auth",
   "/api/seed",
+  "/api/debug",
   "/api/settings/landing",
   "/api/tenant/check",
   "/api/tenant/register",
