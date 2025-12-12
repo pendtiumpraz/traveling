@@ -14,6 +14,10 @@ import {
   Languages,
   Clock,
   DollarSign,
+  Key,
+  Eye,
+  EyeOff,
+  Bot,
 } from "lucide-react";
 
 interface TenantSettings {
@@ -33,6 +37,7 @@ interface TenantSettings {
     accentColor?: string;
   };
   terminology?: Record<string, string>;
+  geminiApiKey?: string | null;
 }
 
 const BUSINESS_TYPES = [
@@ -72,6 +77,7 @@ export default function TenantSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -113,6 +119,7 @@ export default function TenantSettingsPage() {
           defaultLanguage: settings.defaultLanguage,
           timezone: settings.timezone,
           theme: settings.theme,
+          geminiApiKey: settings.geminiApiKey,
         }),
       });
       
@@ -396,6 +403,56 @@ export default function TenantSettingsPage() {
                 className="flex-1"
               />
             </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* API Keys */}
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Key className="h-5 w-5 text-purple-600" />
+          <h2 className="text-lg font-semibold">API Keys</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          Konfigurasi API key untuk fitur AI dan integrasi lainnya
+        </p>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <Bot className="h-4 w-4 inline mr-1" />
+              Gemini API Key
+            </label>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Input
+                  type={showApiKey ? "text" : "password"}
+                  value={settings.geminiApiKey || ""}
+                  onChange={(e) => setSettings({ ...settings, geminiApiKey: e.target.value })}
+                  placeholder="AIzaSy..."
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Dapatkan API key dari{" "}
+              <a 
+                href="https://aistudio.google.com/app/apikey" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-purple-600 hover:underline"
+              >
+                Google AI Studio
+              </a>
+              . Key ini digunakan untuk AI Assistant.
+            </p>
           </div>
         </div>
       </Card>

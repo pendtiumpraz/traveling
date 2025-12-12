@@ -7,9 +7,24 @@ import {
   unauthorizedResponse,
 } from "@/lib/api-response";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = "gemini-2.5-flash"; // Stable model
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+// Get Gemini API key (tenant's key first, then fallback to env)
+async function getGeminiApiKey(tenantId?: string): Promise<string | null> {
+  // Try to get tenant's API key first
+  if (tenantId) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { geminiApiKey: true },
+    });
+    if (tenant?.geminiApiKey) {
+      return tenant.geminiApiKey;
+    }
+  }
+  // Fallback to environment variable
+  return process.env.GEMINI_API_KEY || null;
+}
 
 // Database schema info for AI context
 const DATABASE_SCHEMA = `
@@ -278,9 +293,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!GEMINI_API_KEY) {
+    // Get API key (tenant's key or fallback to env)
+    const geminiApiKey = await getGeminiApiKey(session.user.tenantId);
+    if (!geminiApiKey) {
       return errorResponse(
-        "AI service not configured. Please set GEMINI_API_KEY.",
+        "AI service not configured. Please set Gemini API Key in Settings > Tenant Settings.",
         500,
       );
     }
@@ -338,7 +355,7 @@ IMPORTANT:
 
     // Call Gemini API
     const geminiResponse = await fetch(
-      `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
+      `${GEMINI_API_URL}?key=${geminiApiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

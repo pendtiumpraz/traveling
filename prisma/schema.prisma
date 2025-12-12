@@ -413,6 +413,9 @@ model Tenant {
   // Google Drive
   driveFolderId   String?       // Root folder for this tenant
   
+  // API Keys (per tenant)
+  geminiApiKey    String?       // Tenant's own Gemini API key
+  
   isActive        Boolean       @default(true)
   
   // Soft delete

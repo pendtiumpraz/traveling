@@ -66,6 +66,7 @@ const updateTenantSchema = z.object({
   }).optional(),
   terminology: z.record(z.string(), z.string()).optional(),
   isActive: z.boolean().optional(),
+  geminiApiKey: z.string().optional().nullable(),
 });
 
 // PATCH /api/tenant - Update tenant (super admin or tenant admin)
@@ -115,6 +116,7 @@ export async function PATCH(request: NextRequest) {
     if (validation.data.theme) updatePayload.theme = validation.data.theme;
     if (validation.data.terminology) updatePayload.terminology = validation.data.terminology;
     if (validation.data.isActive !== undefined) updatePayload.isActive = validation.data.isActive;
+    if (validation.data.geminiApiKey !== undefined) updatePayload.geminiApiKey = validation.data.geminiApiKey;
 
     const tenant = await prisma.tenant.update({
       where: { id: tenantId },
